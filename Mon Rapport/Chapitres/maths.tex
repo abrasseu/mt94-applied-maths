@@ -1,0 +1,63 @@
+Forme quadratique
+
+Rn to R
+gradient // dev lim
+
+Rn to Rm
+différentiabilité ssi exists J telle que
+
+\begin{theoreme}[Fonction k-lipschitzienne]
+$f : E \to \R$ est $k$-lipschitzienne
+$$
+	\exists k \tq \forall (x,y)\in E^{2}, \abs{f(x)-f(y)} \leq k\abs{x-y}
+$$
+\end{theoreme}
+
+
+
+	
+\section{Linéaire et non-linéaire}
+
+		\begin{definition}[Linéarité]
+			Une application $f:E \to F$ est linéaire si $\forall x,y\in E\quad \forall \lambda ,\mu \in K$ :
+			\begin{equation}
+				f(\lambda x + \mu y) = \lambda f(x) + \mu f(y)
+			\end{equation}
+			On note alors $f\in L(E,F)$ 
+		\end{definition}
+
+		% TODO : Cas de la linéarité
+		Dans le cas de problèmes linéaires, on a : $Ax=b$
+		Avec Scilab : $A\backslash b = x$ résout le système avec la méthode de Gauss.
+
+		
+
+		% TODO : Morphisme, injectivité surj bij, noyau image
+
+			% $$
+			% \begin{cases}
+			% 	a_{11}x_1 + a_{12}x_2 + \ldots  a_{1n}x_n =  b_1	\\
+			% 	a_{21}x_1 + a_{22}x_2 + \ldots  a_{2n}x_n =  b_2	\\
+
+			% 	a_{n1}x_1 + a_{n2}x_2 + \ldots  a_{nn}x_n =  b_n
+			% \end{cases}
+			% $$
+
+		\begin{definition}[Différentiabilité]
+			Soit $f: \R^n \to \R^n$ et $x_o \in \R^n$.
+			\\$f$ est différentiable en $x_0$ si $\exists J_f \in \M_{n,n} \tq \forall h \in \R^n$ :
+			$$
+				f(x_0 +h) = f(x_0) + J_f h + \norm{h} \epsilon(h)
+			$$
+			où $lim_{h \to 0} \epsilon(h) = 0$ et la norme utilisée est la norme euclidienne.
+			La matrice Jacobienne de $f$ en $x_0$ est $J_f(x_0)$ telle que : $(J)_{ij} = \dfdp{f_i}{x_j}(x_0)$.
+		\end{definition}
+
+
+		\bigskip
+		\begin{theoreme}
+			\begin{enumerate}
+				\item $f : [a;b] \to [a;b]$ alors \quad $\exists! x^* \tq f(x^*)=x^*$
+				\item Si $f$ est k-lipschitzienne alors \quad $\exists K \in ]0;1[ \tq \forall x,y :\quad \abs{f(x)-f(y)} \leq K\abs{x-y}$
+			\end{enumerate}
+		\end{theoreme}

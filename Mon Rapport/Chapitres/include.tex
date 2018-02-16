@@ -1,0 +1,294 @@
+
+% ============================================================
+% 			Colors
+% ============================================================
+	\usepackage{xcolor}
+	\definecolor{code-bg}{rgb}{0.99,0.99,1}
+	\definecolor{bordeaux}{rgb}{0.34,0.06,0.07}
+	\definecolor{bleu}{rgb}{0.14,0.35,0.77}
+	\definecolor{vert}{rgb}{0.2,0.65,0.12}
+	\definecolor{bleu-vert}{rgb}{0.14,0.35,0.27}
+
+
+% ============================================================
+% 			Liens/Références
+% ============================================================
+	\hypersetup{
+		% backref=true,			% Pour biblio
+		% pagebackref=true,
+		% hyperindex=true,
+		colorlinks=false,
+		breaklinks=true,
+		urlcolor= blue,
+		linkcolor= blue,
+		% bookmarks=true,			% Signets
+		bookmarksopen=true,
+		pdfauthor={Alexandre Brasseur},	% Infos PDF
+		pdfsubject={MT94}
+		pdftitle={MT94 - Cahier d'intégration},
+		pdfkeywords={Mathématiques, Maths, Ingénieur, Engineer, Engineering, Méthodes, Numérique}
+	}
+
+
+% ============================================================
+% 			Header/Footer
+% ============================================================	
+	
+	\renewcommand{\chaptermark}[1]{\markboth{\upshape\thechapter. ~ \textsc{#1}}{}}
+	\lhead{MT94}
+	% \chead{}
+	\rhead{\leftmark}
+	% \lfoot{}
+	% \cfoot{}
+	% \rfoot{\thepage}
+	\renewcommand{\headrulewidth}{0.01pt}
+
+
+% ============================================================
+% 			Refonte
+% ============================================================
+
+	% - Avant-propos
+	\addto\captionsfrench{\renewcommand{\abstractname}{Avant-propos\vspace{.3cm}\hrule\vspace{.5cm}}}
+	\renewcommand{\abstracttextfont}{\normalfont\large}
+	% - Mise en page
+	\renewcommand{\abstractnamefont}{\huge\bfseries}
+	\newcommand{\sdl}{\smallskip}
+	\renewcommand{\bigskip}{\vspace{.8cm}}
+
+% ============================================================
+% 			Sections
+% ============================================================
+	\setcounter{secnumdepth}{4}
+	\renewcommand{\thechapter}{\Roman{chapter}}
+	\renewcommand{\thesection}{\Roman{section})}
+	\renewcommand{\thesubsection}{\arabic{subsection})}
+	\renewcommand{\thesubsubsection}{\alph{subsubsection})}
+	\renewcommand{\theparagraph}{\roman{paragraph})}
+
+	% \titleformat{hcommandi}[hshapei]{hformati}{hlabeli}{hsepi}{hbefore-codei}[hafter-codei]
+	\titleformat{\chapter}
+		[display]		% style : hang, display, runin, leftmargin, ... 
+		{\bfseries}		% changement de fontenuméro + titre 
+		{\huge\textsc{\chaptertitlename}~\thechapter}		% numéro 
+		{20pt}		% espace entre le numéro et le titre 
+		{\Huge}		% changement de fonte du titre
+		[\hrule]	% after code		
+	\titlespacing*{\chapter}		% 
+		{0pt}		% retrait à gauche 
+		{40pt}		% espace avant 
+		{50pt}		% espace après 
+		[0pt]		% retrait à droite
+
+	\titleformat{\section}[hang]
+		{\normalfont\Large\bfseries}		% fonte numéro + titre 
+		{\thesection}		% numéro 
+		{1em}				% espace entre le numéro et le titre 
+		{}					% fonte titre 
+		% [\hrule]
+	\titlespacing*{\section} 
+		{0pt}		% retrait à gauche 
+		{3.5ex plus 1ex minus .2ex}		% espace avant 
+		{2.3ex plus .2ex}		% espace après 
+		[0pt]		% retrait à droite
+
+	\titleformat{\subsection}[hang]
+		{\normalfont\large\bfseries}		% fonte numéro + titre 
+		{\thesubsection}		% numéro 
+		{1em}		% espace entre le numéro et le titre 
+		{}		% fonte titre 
+	\titlespacing*{\subsection} 
+		{0pt}		% retrait à gauche 
+		{3.25ex plus 1ex minus .2ex}		% espace avant 
+		{1.5ex plus .2ex}		% espace après 
+		[0pt]		% retrait à droite
+
+	\titleformat{\subsubsection} 
+		[hang]		% style : hang, display, runin, leftmargin, ... 
+		{\normalfont\normalsize\bfseries}		% fonte numéro + titre 
+		{\thesubsubsection}		% numéro 
+		{1em}		% espace entre le numéro et le titre 
+		{}		% fonte titre 
+	\titlespacing*{\subsubsection} 
+		{0pt}		% retrait à gauche 
+		{3.25ex plus 1ex minus .2ex}		% espace avant 
+		{1.5ex plus .2ex}		% espace après 
+		[0pt]		% retrait à droite
+
+	\titleformat{\paragraph} 
+		[hang]		% style : hang, display, runin, leftmargin, ... 
+		{\normalfont\normalsize\bfseries}		% fonte numéro + titre 
+		{\theparagraph}		% numéro 
+		{1em}		% espace entre le numéro et le titre 
+		{}		% fonte titre 
+		[]		% après le titre, p.ex. "\@addpunct{.}" de amsmath 
+	\titlespacing*{\paragraph} 
+		{0pt}		% retrait à gauche 
+		{3.25ex plus 1ex minus .2ex}		% espace avant 
+		{5pt}		% espace après
+
+	\titleformat{\subparagraph} 
+		[runin]		% style : hang, display, runin, leftmargin, ... 
+		{\normalfont\normalsize\bfseries}		% fonte numéro + titre 
+		{\thesubparagraph}		% numéro 
+		{1em}		% espace entre le numéro et le titre 
+		{}		% fonte titre 
+		[]		% après le titre, p.ex. "\@addpunct{.}" de amsmath 
+	\titlespacing*{\subparagraph} 
+		{\parindent}		% retrait à gauche 
+		{3.25ex plus 1ex minus .2ex}		% espace avant 
+		{1em}		% espace après
+
+% \titleformat{\section}[frame] 
+% {\normalfont} 
+% {\filright\footnotesize\enspace SECTION \thesection\enspace} 
+% {8pt} 
+% {\Large\bfseries\filcenter}
+
+% ============================================================
+% 			Maths
+% ============================================================
+	\setcounter{MaxMatrixCols}{12}
+
+	% - Commandes
+	\newcommand{\R}{\mathbb{R}}
+	\newcommand{\N}{\mathbb{N}}
+	\newcommand{\Z}{\mathbb{Z}}
+	\newcommand{\C}{\mathbb{C}}
+	\newcommand{\proba}{\mathbb{P}\,}
+	\newcommand{\Cont}{\mathcal{C}}
+	\newcommand{\M}{\mathcal{M}}
+
+	\newcommand{\abs}[1]{\lvert #1 \rvert}
+	\newcommand{\norm}[1]{\lVert #1 \rVert}
+	\newcommand{\scal}[2]{\langle #1, #2 \rangle}
+	\newcommand{\dfdp}[2]{\frac{\partial #1}{\partial #2}}
+	\newcommand{\dfdpp}[3]{\frac{\partial^{#3} #1}{\partial #2^{#3}}}
+	%\newcommand{\interv}[4]{\mathopen{#1}#2\mathpunct{};#3\mathclose{#4}}
+
+	\newcommand{\limto}[2]{\xrightarrow[#1 \to #2]{}}
+	\newcommand{\dint}[1]{~\text{d}#1}
+	\newcommand{\ie}{\textit{i.e.} }
+	\newcommand{\tq}{\text{ tel que }}
+
+	\newcommand{\grad}{~\nabla}
+	\newcommand{\Aire}{\text{Aire}~}
+	\newcommand{\vect}[1]{\text{Vect}\,\{#1\}}
+	\newcommand{\Ker}{\text{Ker~}}
+	\newcommand{\Image}{\text{Im~}}
+	\newcommand{\rang}{\text{rang~}}
+	
+	\newcommandx{\suite}[3][1=n,3=\in\N]{(#2_{#1})_{#1#3}}
+
+	% - Styles de théorèmes
+	\newtheoremstyle{th}
+		{10pt}{10pt}	% espace après 
+		{}				% police du corps du théorème 
+		{\parindent}	% indentation (vide pour rien, \parindent) 
+		{}{}			% police + ponctuation après le théorème 
+		{\newline}		% après le titre du théorème (espace ou \newline) 
+		{\textsc{\bfseries\thmname{#1} \,\thmnumber{#2} :}\thmnote{ #3}}
+	\newtheoremstyle{thShort}
+		{10pt}{10pt}	% espace après 
+		{}				% police du corps du théorème 
+		{\parindent}	% indentation (vide pour rien, \parindent) 
+		{}{}			% police + ponctuation après le théorème 
+		{ }		% après le titre du théorème (espace ou \newline) 
+		{{\bfseries\thmname{#1} \thmnumber{#2} :}\thmnote{ #3} }
+
+	\newtheoremstyle{note}
+		{10pt}{10pt}	% espace après 
+		{}				% police du corps du théorème 
+		{\parindent}	% indentation (vide pour rien, \parindent) 
+		{}{}			% police + ponctuation après le théorème 
+		{\newline}		% après le titre du théorème (espace ou \newline) 
+		{{\itshape\thmname{#1} \thmnumber{#2} :}\thmnote{ #3}}
+	\newtheoremstyle{noteShort}
+		{10pt}{10pt}	% espace après 
+		{}				% police du corps du théorème 
+		{\parindent}	% indentation (vide pour rien, \parindent) 
+		{}{}			% police + ponctuation après le théorème 
+		{ }		% après le titre du théorème (espace ou \newline) 
+		{{\itshape\thmname{#1} \thmnumber{#2} :}\thmnote{ #3} }
+
+	% - Théorèmes
+	\theoremstyle{th}
+		\newtheorem{definition}{Définition}[chapter]
+		\newtheorem{prop}{Propriété}[chapter]
+		\newtheorem{theoreme}{Théorème}[chapter]
+		\newtheorem{lemme}[theoreme]{Lemme}
+		\newtheorem*{ex}{Exemple}
+		
+	\theoremstyle{thShort}
+		\newtheorem{propShort}{Propriété}[chapter]
+		\newtheorem{definitionShort}{Définition}[chapter]
+		\newtheorem*{exShort}{Exemple}
+		
+
+	\theoremstyle{note}
+		\newtheorem*{note}{Remarque}
+		\newtheorem*{preuve}{Preuve}
+
+	\theoremstyle{noteShort}
+		\newtheorem*{noteShort}{Remarque}
+		\newtheorem*{preuveShort}{Preuve}
+	
+
+
+% ============================================================
+% 			Minted
+% ============================================================
+	% - Numérotation des lignes
+	\renewcommand{\theFancyVerbLine}{\roboto
+	\textcolor[rgb]{0.15,0.15,0.15}{\scriptsize
+	{\arabic{FancyVerbLine}}}}
+
+	% - Scilab custom code :		alias = \scicode{"filepath.sce"}
+	\newmintedfile[scicode]{scilab}{
+		bgcolor=code-bg,
+		linenos=true,
+		fontfamily=txtt,			% txtt, pcr
+		fontsize=\footnotesize,
+		numberblanklines=true,
+		numbersep=5pt,
+		gobble=0,
+		frame=leftline,
+		framerule=0.2pt,
+		framesep=4mm,
+		tabsize=4,
+		obeytabs=false,
+		numberfirstline=true,
+		stepnumber=5,
+		numbersep=3mm,
+		breaklines=true,
+		samepage=false,
+		texcl=false,
+		%label=Code Scilab,
+	}
+	% \usemintedstyle{colorful}		% colorful, borland, friendly
+	\surroundwithmdframed{minted}
+
+	\renewcommand\listingscaption{Code Source}
+	\renewcommand\listoflistingscaption{Liste des codes sources Scilab}
+
+	% - Algorithme
+	\SetAlgoSkip{bigskip}			% Espace vertical avant/après l'algorithme
+	%\SetCustomAlgoRuledWidth{10pt}
+	%\SetAlCapHSkip{}
+	\SetAlgoCaptionLayout{centerline}
+	\SetAlgoInsideSkip{smallskip}
+	\setlength{\algomargin}{3em}
+	\setlength{\interspacetitleruled}{3pt}
+
+	% - Code inline
+	% \newcommand{\code}[1]{\colorbox{gray!10}{\texttt{#1}}}
+	\newcommand{\code}[1]{\mintinline{scilab}{#1}}
+
+	% - Accès fichier scilab
+	\newcommand{\tdA}{"../Scilab/TD1-Pb_Non_Lineaires/"}
+	\newcommand{\tdB}{"../Scilab/TD2-Fractales/"}
+	\newcommand{\tdC}{"../Scilab/TD3-Equations_Differentielles/"}
+	\newcommand{\tdD}{"../Scilab/TD4-Valeurs_Propres/"}
+	\newcommand{\tdE}{"../Scilab/TD5-Optimisation/"}
+	\newcommand{\tdF}{"../Scilab/TD6-Equations_Differentielles_Partielles/"}
+	\newcommand{\img}{"Exports/"}

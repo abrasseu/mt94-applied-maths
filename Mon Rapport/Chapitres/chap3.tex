@@ -1,0 +1,697 @@
+\chapter{Equations différentielles}
+\label{ch-3}
+
+% \section{Introduction}
+
+	Dans ce chapitre, nous chercherons à rédoudre des équations différentielles que
+	\begin{equation}
+		\label{eq-3-eqDiff}
+		\begin{cases}
+			y'(t) = f(t, y(t)) \\
+			y(t_0) = y_0
+		\end{cases}
+	\end{equation}
+	avec $t \in I = [t_0; t_0 + T] ~ (T>0)$ et $f(t,y):~I\times\R^n \to \R^n$.
+	\eqref{eq-3-eqDiff} est un problème de Cauchy.
+
+	\bigskip
+
+	Dans le cas des équations différentielles d'ordre $n>1$, nous allons ramener le problème a un équation différentielle d'ordre 1 dans $\R^n$. On a le système différentiel d'ordre $n$:
+	\begin{equation}
+		\label{eq-3-systDiffRn}
+		\begin{cases}
+			y(0) = a_0					\\
+			y'(0) = a_1					\\
+			\quad\vdots 				\\
+			y^{(n-1)}(0) = a_{n-1}		\\
+			y^{(n)} = f(t, y, y',...,y^{(n-1)})
+		\end{cases}
+	\end{equation}
+
+	On pose alors $Y\in\R^n$ tel que : \quad
+	$
+		\begin{cases}
+			Y' = F(t,Y)			\\
+			Y(0)
+		\end{cases}
+	$ \quad avec :
+	$$
+		Y = \begin{pmatrix}
+			y_1 = y(t) 	\\
+			y_2 = y'_1 = y'		\\
+			\vdots 	\\
+			y_n = y_{n-1}' = y^{(n-1)}
+		\end{pmatrix}
+		\quad, \qquad
+		Y(0) = \begin{pmatrix}
+			a_0	\\
+			a_1	\\
+			\vdots 	\\
+			a_{n-1}
+		\end{pmatrix}
+		\quad \text{et} \qquad
+		F(t,Y) = \begin{pmatrix}
+			y_1 	\\
+			y_2		\\
+			\vdots 	\\
+			y_{n-1}	\\
+			f(t, y1, y2, ..., y_{n-1})
+		\end{pmatrix}
+		$$
+
+	\bigskip
+
+	\begin{ex}[Vectorisation de systèmes différentielles]
+		\begin{equation}
+			\label{eq-3-ex3ordre}
+			\begin{cases}
+				y^{(3)} + ay' + cy = 0	\\
+				y(0) = d_0		\\
+				y'(0) = d_1		\\
+				y''(0) = d_2
+			\end{cases}
+		\end{equation}
+
+		On vectorise l'équation :
+		$$
+			Y = \begin{pmatrix}
+				y_1 = y			\\
+				y_2 = y'_1 = y'	\\
+				y_3 = y'_2 = y''
+			\end{pmatrix}
+			\iff
+			\begin{cases}
+				y'_1 = y_2	\\
+				y'_2 = y_3	\\
+				y'_3 = -ay_2 - cy_1
+			\end{cases}
+			\iff
+			Y' = f(t,Y) = \begin{pmatrix}
+				0	&	1	&	0	\\	
+				0	&	0	&	1	\\	
+				-c	&	-a	&	0	
+			\end{pmatrix}
+			\begin{pmatrix}
+				y_1	\\	
+				y_2	\\	
+				y_3		
+			\end{pmatrix}
+			$$
+	\end{ex}
+
+	Que ce passe-t-il si l'on n'est pas capable de résoudre analytiquement une équation différentielle ?
+
+	\begin{ex}
+		\begin{equation}
+			\label{eq-3-et2}
+			\begin{cases}
+				y'(t) = e^{-t^2}	\\
+				y(0) = 1
+			\end{cases}
+		\end{equation}
+		
+		\begin{align*}
+			\frac{dy}{dt} = e^{-t^2} 	&\implies \frac{dy}{y} = e^{-t^2}				\\	
+										&\implies \int \frac{dy}{y} = \int e^{-t^2} dt	\\
+										&\implies \ln\abs{y} = \int e^{-t^2} dt
+		\end{align*}
+
+		Arrivé ici, on est bloqué car on ne connaît pas de primitive de $e^{-t^2}$ donc l'équation différentielle \eqref{eq-3-et2} n'admet pas de solution analytique. On a donc recours à un schéma numérique.
+	\end{ex}
+
+
+\section{Schémas numériques}
+
+		Les algorithmes que nous présenterons ici ont pour but d'approcher la solution d'une équation numérique.
+
+		On discrétise l'intervalle $I = [t_0; t_0 +T]$ en $\sigma = \{ t_0, t_1, ..., t_N \}$ avec $t_N = t_0 +T$. Pour simplifier, on supposera des subdivisions uniformes et donc le pas est : $h = h_i = \abs{t_{i+1}-t_i} ~~\forall i \in [0; N-1]$.
+
+		On approche $y(t_i)$ par $z_i$ où :
+		\begin{equation}
+			\label{eq-3-schema}
+			\begin{cases}
+				z_{i+1} = z_i + h\Phi(t_i, z_i, h_i) \\
+				z_0 = y_0
+			\end{cases}
+		\end{equation}
+		Avec $\Phi$ la fonction d'approximation spécifique à chaque schéma.
+
+
+	\subsection{Caractéristiques d'un schéma numérique}
+
+		\subsubsection{Stabilité}
+			Soient les suites $\suite[i]{u}$ et $\suite[i]{v}$ telles que :
+			\begin{equation}
+				\label{eq-3-uv}
+				\begin{cases}
+					u_{i+1} = u_i + h\Phi(t_i,u_i,h)	\\
+					u_0 \text{ donné}
+				\end{cases}
+				\qquad
+				\begin{cases}
+					v_{i+1} = u_{i+1} + \epsilon_i	\\
+					v_0 = u_0
+				\end{cases}
+			\end{equation}
+
+			$(v_i)$ correspond au même schéma que $(u_i)$ mais avec une erreur $\epsilon_i \in \R$.
+
+			\begin{definition}[Stabilité]
+				Le schéma est dit stable si
+				\begin{equation}
+					\label{eq-3-stable}
+					\max_{i\in  I} \abs{u_i - v_i} \leq C \left( \abs{u_0 - v_0} + \sum_{i=1}^N \abs{\epsilon_i} \right)
+				\end{equation}
+				où $C$ est une constante ne dépendant pas de $u_i$ et $v_i$.
+			\end{definition}
+
+			\begin{theoreme}
+				Le schéma est stable si et seulement si $\exists K \tq$ :
+				\begin{equation}
+					\label{eq-3-stableLip}
+					\norm{\Phi(t,y,h) - \Phi(t,z,h)} \leq K \norm{y-z}
+				\end{equation}
+				c'est-à-dire que $\Phi$ est $K-$lipschitzienne par rapport à sa 2\ieme variable.
+			\end{theoreme}
+
+			Le fait qu'un schéma soit stable signifie que la propagation d'erreur sur la donnée initiale n'influe pas le résultat final. Si $\Phi$ n'est pas lipschitzienne, l'unicité de la solution n'est pas garantie.
+
+		\subsubsection{Consistance}
+
+			\begin{definition}[Consistance]
+				Un schéma est dit consistant si
+				\begin{align}
+					\label{eq-3-consistance}
+					\epsilon(y) = \sum \norm{y_{i+1} - y_i - \phi{t_i, y_i, h}} \limto{h}{0} 0	\\
+					\Phi(t,y,0) = f(t,y)
+				\end{align}
+			\end{definition}
+
+			\begin{theoreme}
+				Pour montrer que le schéma est consistant, il suffit de montrer qu'il existe une constante $C>0$ telle que :
+				\begin{equation}
+					\label{eq-3-consistanceSuff}
+					\norm{\Phi(t,y,0) - \Phi(t,z,0)} \leq C \norm{y-z}
+				\end{equation}
+			\end{theoreme}
+			% TODO : WTFFFFFFFFFFFFFFFFFFFf
+
+		\subsubsection{Ordre de convergence}
+
+			\begin{definition}[Ordre de convergence]
+				Un schéma est d'ordre $p$ si $\exists C > 0 \tq $:
+				\begin{equation}
+					\label{eq-3-ordre}
+					\epsilon(y) = \max \abs{y_i - z_i} \leq Ch^p	\\
+				\end{equation}
+				% TODO : Cela correspond au nombre de décimales significatives gagnées
+			\end{definition}
+
+
+	\subsection{Schéma d'Euler}
+
+		On a $y' = f(t, y)$. On connaît $y_0$, comment calculer $y_1 = y(t_1)$ ? On fait un développement de Taylor :
+		$$
+			y_{i+1} = y(t_{i+1}) = y(t_i) + hy'(t_i) + \frac{h^2}{2}y''(\epsilon)
+		$$
+		On se débarasse du reste qui tend vers 0 quand $h$ tend vers 0 :
+		$$
+			y_{i+1} = y(t_{i+1}) \sim y_i + hy'(t_i) = y_i + hf(t_i, y_i) = z_{i+1}
+		$$
+
+		On approche donc $y_i$ par $z_i$, on obtient le schéma d'Euler :
+		\begin{equation}
+			\label{eq-3-euler}
+			\begin{cases}
+				z_{i+1} = z_i + hf(t_i, z_i)		\\
+				z_0 = y_0
+			\end{cases}
+		\end{equation}
+		Et donc
+		\begin{equation}
+			\label{eq-3-phiEuler}
+			\Phi(t_i,z_i,h) = f(t_i,z_i)
+		\end{equation}
+		~
+		\bigskip
+
+		On peut aussi définir ce schéma sans développement de Taylor :
+		\begin{equation}
+			\label{eq-3-dev}
+			y(t_{i+1}) 	= y(t_i) + \int_{t_i}^{t_{i+1}} y'(t)dt
+						= y(t_i) + \int_{t_i}^{t_{i+1}} f(t,y)dt			
+		\end{equation}
+
+		Or $\int_{t_i}^{t_{i+1}} f(t,y)dt$ est inconnu, on l'approxime donc par l'aire du rectangle gauche :
+		\begin{equation}
+			y(t_{i+1}) \sim y(t_i) + h\times f(t_i, y_i)
+		\end{equation}
+		D'où le schéma d'Euler explicite \eqref{eq-3-euler} : $z_{i+1} = z_i + hf(t_i,z_i)$.
+
+		Si on approche par l'aire du rectangle droit, on a le schéma d'Euler implicite (moins utilisé) : $z_{i+1} = z_i + hf(t_{i+1}, z_{i+1})$.
+
+		\bigskip
+
+		\begin{propShort}
+			Le schéma d'Euler est stable et consistant.
+		\end{propShort}
+		\begin{preuve}
+			$ \eqref{eq-3-phiEuler} \implies \norm{f(t,y) -f(t,z)} \leq K\norm{y-z} $
+			si $f$ est lipschitzienne, alors le schéma est stable
+			De plus par définition \eqref{eq-3-phiEuler} le schéma est consistant.
+		\end{preuve}
+
+		\begin{propShort}
+			Le schéma d'Euler est d'ordre $1$.
+		\end{propShort}
+		\begin{preuve}
+			\begin{align*}
+				y_{i+1} 			&= y(t_i) + hy'_i + \frac{h^2}{2}y''(\epsilon_i)	\\
+				\text {et } z_{i+1} 	&= z_i + hf(t_i, z_i)
+			\end{align*}
+			$$
+				\text{D'où } \norm{y_{i+1} - z_{i+1}} = (y_i -z_i) + h \left( f(t_i,y_i) -f(t_i, z_i) \right) + \frac{h^2}{2}y''(\epsilon_i)
+			$$
+			% Uniforme ?
+			On suppose $f$ $L$-lipschitzienne uniforme par rapport à sa seconde variable.
+			De plus, supposons : $\exists M > 0$ tel que $\norm{y''(\epsilon_i)}\leq M ~~\forall\epsilon\in [t_0, t_0 + T] $.
+
+			On note $e_i = y_i - z_i$, on a alors :
+			\begin{align*}
+				\norm{e_{i+1}}	&\leq \norm{e_i} + hK\norm{e_i} + \frac{h^2}{2}M	\\
+								&\leq \underbrace{(1 + hL)}_{C} \norm{e_i} + \underbrace{\frac{h^2}{2}M}_{D}			\\
+								% \text{on pose $1+hL = C$ et } \frac{h^2}{2}M = D		\\
+								&\leq C \norm{e_i} + D
+			\end{align*}
+			$\suite[i]{e}$ est une suite arithmético-géométrique, on a alors :
+			\begin{align*}
+				\norm{e_{i+1}}	&\leq C^{i+1}e_0 + D\times \sum_{k=1}^i C^i			\\
+								&\leq C^{i+1}e_0 + D\times \frac{C^{i+1} - 1}{C-1}	\\
+			\end{align*}
+			Or $z_0 = y_0 \implies e_0 = 0$. De plus :		
+			\begin{align*}
+				D\times \frac{C^{i+1} - 1}{C-1}	&= \frac{h^2}{2} M \frac{(1+hL)^{i+1} -1}{hL}	\\
+												&= \frac{hM}{2L} \left( (1+hL)^{i+1} -1 \right)
+			\end{align*}
+			On utilise $(1+x)^k \leq e^{kx} ~~\forall k,x>0$. On a finalement :
+			\begin{align*}
+				\norm{e_{i+1}}	&\leq \frac{hM}{2L}(e^{iKH} -1) = \frac{hM}{2L}(e^{\overbrace{t_i-t_0}^{ih}} -1)	\\
+								&\leq h \underbrace{\left( \frac{M}{2L}(e^T-1) \right)}_{K \in \R}				\\
+								&\leq Kh
+			\end{align*}
+		\end{preuve}
+
+	\subsection{Schéma du point-milieu}
+
+		On approxime \eqref{eq-3-dev} par l'aire du rectangle du point du milieu :
+		\begin{align*}
+			\eqref{eq-3-dev} \iff
+			y(t_{i+1}) 	&\sim y(t_i) + h\times f(t_i +\frac{h}{2}, y(t_i +\frac{h}{2}))	\\
+						&\sim y(t_i) + h\times f(t_i +\frac{h}{2}, y_i + \frac{h}{2}f(t_i,y_i))
+		\end{align*}
+
+		D'où le schéma du point milieu :
+		\begin{equation}
+			\label{eq-3-pointMilieu}
+			\begin{cases}
+				z_{i+1} = z_i + h\times f(t_i +\frac{h}{2}, z_i + \frac{h}{2}f(t_i,z_i))		\\
+				z_0 = y_0
+			\end{cases}
+		\end{equation}
+		Et donc $\Phi(t_i,z_i,h) = f(t_i +\frac{h}{2}, y_i + \frac{h}{2}f(t_i,y_i))$.
+
+		\bigskip
+
+		% TODO ordre 1 ou 2 ?
+		\begin{propShort}
+			Le schéma du point milieu est d'ordre $1$.
+		\end{propShort}	
+		\begin{preuve}
+			On part des suites $\suite[i]{u}$ et $\suite[i]{u}$ définies en \eqref{eq-3-uv}
+			\begin{align*}
+				u_{i+1} - v_{i+1} 			&= [u_i + h\Phi(t_i,u_i,h)] - [v_i + h\Phi(t_i,v_i,h)]		\\
+				\norm{u_{i+1} - v_{i+1}} 	&\leq [u_i + h\Phi(t_i,u_i,h)] - [v_i + h\Phi(t_i,v_i,h)]	\quad\text{(inégalité triangulaire)}	\\
+											&\leq \norm{u_i - v_i} + h\norm{\Phi(t_i,u_i,h) - \Phi(t_i,v_i,h)} + \norm{\epsilon_i}	\\
+											% Dafuq ???
+											&\leq \norm{u_i - v_i}(1+Ch) + \norm{\epsilon_i}
+			\end{align*}
+			On utilise le lemme de Granwall :
+			Si $\abs{u_{i+1} - v_{i+1}} \leq C\abs{u_i - v_i} + \abs{\epsilon_i}$ alors $\exists K \tq $ :
+			\begin{equation}
+				\label{eq-2-granwall}
+				\abs{u_{i+1} - v_{i+1}} \leq K \left( \abs{u_0 - v_0} + \sum_{k=1}^i \abs{\epsilon_i} \right)
+			\end{equation}
+
+			\begin{preuve}
+				Par récurrence :
+				Au rang $i=0$, c'est trivialement vrai.	\\
+				On suppose $\abs{u_{i+1} - v_{i+1}} \leq C \left( \abs{u_0 - v_0} + \sum_{k=1}^i \abs{\epsilon_i} \right)$ vrai pour un certain rang $i$.
+				Par hypothèse, on a :
+				\begin{align*}
+					\abs{u_{i+1} - v_{i+1}} &\leq C\abs{u_i - v_i} + \abs{\epsilon_i}		\\
+											&\leq C\left( C(\abs{u_0 - v_0} + \sum_{k=1}^{i-1} \abs{\epsilon_i}) \right) + \abs{\epsilon_i}	\quad\text{(hypothèse de récurrence)}	\\
+											&\leq \underbrace{\max(C^2, C\abs{\epsilon_i})}_{K} \left( \abs{u_0 - v_0} + \sum_{k=1}^i \abs{\epsilon_i} \right)	
+				\end{align*}
+			\end{preuve}
+		\end{preuve}
+
+		% TODO Preuve
+		\begin{propShort}
+			Le schéma du point milieu est stable et consistant.
+		\end{propShort}
+
+
+	\subsection{Schéma d'Euler-Cauchy}
+
+		On approxime \eqref{eq-3-dev} par l'aire du trapèze :
+		\begin{align*}
+			\eqref{eq-3-dev} \iff
+			y(t_{i+1}) 	&\sim y(t_i) + \frac{h}{2}\times \left( f(t_i, y_i) + f(t_{i+1}, y_{i+1}) \right)	\\
+						&\sim y(t_i) + \frac{h}{2}\times \left( f(t_i, y_i) + f(t_{i+1}, y_i + hf(t_i,y_i)) \right)
+		\end{align*}
+
+		D'où le schéma d'Euler-Cauchy :
+		\begin{equation}
+			\label{eq-3-eulerCauchy}
+			\begin{cases}
+				z_{i+1} = z_i + \frac{h}{2}\times \left( f(t_i, z_i) + f(t_{i+1}, z_i + hf(t_i,z_i)) \right)	\\
+				z_0 = y_0
+			\end{cases}
+		\end{equation}
+		Et donc $\Phi(t_i,z_i,h) = \frac{1}{2}\times \left( f(t_i, z_i) + f(t_{i+1}, z_i + hf(t_i,z_i)) \right)$.
+
+		\bigskip
+
+		% TODO : Preuves
+		\begin{propShort}
+			Le schéma d'Euler-Cauchy est stable et consistant.
+		\end{propShort}
+
+		\begin{propShort}
+			Le schéma d'Euler-Cauchy est d'ordre $2$.
+		\end{propShort}
+
+
+	\subsection{Schéma de Runge-Kutta}
+
+		Enfin nous avons le schéma de Runge-Kutta :
+		\begin{equation}
+			\label{eq-3-rungeKutta}
+			\begin{cases}
+				k_1 = f(t_i, z_i)	\\
+				k_2 = f(t_i + \frac{h}{2}, 	z_i + \frac{h}{2}k_1)	\\
+				k_3 = f(t_i + \frac{h}{2}, 	z_i + \frac{h}{2}k_2)	\\
+				k_4 = f(t_i + h,			z_i + hk_3)				\\
+				z_{i+1} = z_i + \frac{1}{6}(k_1 + 2k_2 + 2k_3 + k_4)
+			\end{cases}
+		\end{equation}
+
+		% TODO Preuves ?
+		\begin{propShort}
+			Le schéma de Runge-Kutta est stable et consistant.
+		\end{propShort}
+
+		\begin{propShort}
+			Le schéma de Runge-Kutta est d'ordre $4$.
+		\end{propShort}
+
+\section{Applications}
+	\subsection{Comparaison des schémas}
+		
+		Nous implémentons les schémas sous Scilab de la manière suivante :
+
+		\begin{listing}[H]
+			\scicode{\tdC 0-Tous_Schemas.sce}
+			\caption{Schémas de résolution d'équations différentielles}
+			\label{code-3-schemasED}
+		\end{listing}
+
+		Les paramètres de ces schémas sont les suivants :
+		\begin{itemize}
+			\item \code{y0} $\in\M_{1k}$ vecteur colonne ou réel correspondant à la situation initiale ($k$ est l'ordre de l'équation différentielle)
+			\item \code{t} $\in\M_{n1}$ discrétisation de l'intervalle $[t_0; t_0+T]$
+			\item \code{f(t,x)} correspond à l'équation différentielle à résoudre retourne $f(t,x) \in\M_{1k}$
+		\end{itemize}
+		En retour, on récupère la matrice \code{y} $\in\M_{kn}$ où chaque ligne correspond à une itération correspondant à la fonction $y(t)$ approchée à l'instant $t_i$.
+
+		On va comparer tous ces schémas sur l'équation différentielle suivante :
+		\begin{equation}
+			\begin{cases}
+				y' = -t\times y(t) + t	& t\in[0;4]	\\
+				y(0) = y_0 = 0
+			\end{cases}
+		\end{equation}
+		dont la solution analytique est $y(t) = 1 - e^{-\frac{t^2}{2}}$.
+
+		On fait les comparaisons pour plusieurs discrétisations avec $n$ le nombre de subdivisions de l'intervalle $[0;4]$. Pour chaque valeur de $n$ on calcule l'erreur logarithmique absolue maximale de chaque schéma par rapport à la solution analytique.
+		Ensuite on effectue une régression linéaire des erreurs afin de récupérer l'ordre des schémas.
+
+		On obtient les résultats suivants :
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth]{\tdC\img 1-Comparaison.eps}
+			\caption{Comparaison des schémas}
+			\label{img-3-comparaison}
+		\end{figure}
+
+		Sur le graphique de la fonction, on ne distingue pas les approximations de chaque schémas car elles sont confondues. Concernant les ordres des méthodes on obtient bien les mêmes que ceux prévues précédemment.
+
+		% TODO ode utilise la méthode d'Adams 
+
+	\subsection{Simulation d'un pendule}
+
+		On modélise ici un pendule de masse $M$ accroché à une tige de longueur $L$ de masse négligeable devant $M$. On note $\theta(t)$ l'angle formé par la tige et l'axe vertical passant par la fixation du pendule.
+		% TODO schéma
+		On a l'équation différentielle :
+		\begin{equation}
+			\label{eq-3-pendule}
+			\begin{cases}
+				\theta''(t) = -\frac{g}{L} \times\sin(\theta(t))		\\
+				\theta'(0) = v_0		\\
+				\theta(0) = \theta_0
+			\end{cases}
+		\end{equation}
+
+		Comme l'équation est non-linéaire à cause du $\sin(\theta)$, on ne peut pas trouver de solution analytique. En revanche, on peut approcher $\sin(\theta)$ par $\theta$ dans l'hypothèse où les angles sont petits (inférieurs à 5°). Cette approximation permet alors d'avoir l'équation différentielle linéaire suivante :
+		\begin{equation}
+			\label{eq-3-penduleApprox}
+			\begin{cases}
+				\phi''(t) = -\frac{g}{L} \times\phi(t)		\\
+				\phi'(0) = v_0		\\
+				\phi(0) = \theta_0
+			\end{cases}
+		\end{equation}
+		où $\phi(t)$ correspond à $\theta(t)$ avec l'approximation.
+		La solution analytique est alors :
+		\begin{equation}
+			\label{eq-3-soluceApprox}
+			\phi(t) = \theta_0 \cos \left( t\sqrt{\frac{g}{L}} \right)
+		\end{equation}
+
+		On va alors comparer les deux modèles \eqref{eq-3-pendule} et \eqref{eq-3-penduleApprox} avec différents angles $\theta_0$.
+		Pour l'implémentation sous Scilab on pose : $y = \binom{\theta}{\theta'}$. On a :
+		\begin{listing}[H]
+			\scicode{\tdC 2-Pendules.sce}
+			\caption{Modélisation de pendules}
+			\label{code-3-pendules}
+		\end{listing}
+
+		Les différentes conditions intiales sont répertoriées dans la matrice \code{thetas}. Pour chaque expérience, on résout le problème original \eqref{eq-3-pendule} et celui après approximation \eqref{eq-3-penduleApprox} avec la méthode de Runge-Kutta. On obtient les résultats suivant
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth]{\tdC\img 2a-Pendules.eps}
+			\caption{Pendules des différentes expériences}
+			\label{img-3-pendules}
+		\end{figure}
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth]{\tdC\img 2a-Graphes_Sin.eps}
+			\caption{Comparaison des différentes expériences}
+			\label{img-3-compPendules}
+		\end{figure}
+
+		On observe que pour les petits angles $\theta_0 = \frac{\pi}{64} = 2.8125$° et même $\frac{\pi}{16} = 11.25$° l'approxmation diffère très peu du problème original. En revanche pour des angles plus grand, on voit clairement une différence de période d'oscillation et donc un écart se creusant entre les deux solutions. Ainsi on a bien vérifié expérimentalement que l'hypothèse $sin(\theta) \sim \theta$ n'est valable que pour de petits angles. 
+
+
+	\subsection{Gravitation}
+
+		La mécanique céleste est une affaire d'équations différentielles.
+		Ainsi nous pouvons simuler le mouvement de plusieurs corps céleste soumis à leur attractions gravitationnelles mutuelles.
+		Dans le cas de deux corps, le problème peut être résolu analytiquement mais pour plus de deux corps cela n'est pas possible. On pourrait tenter de contourner ce problème en le ramenant à plusieurs sous-problèmes à deux corps mais la solution ainsi obtenue ne correspond pas aux trajectoires observées. Il y a entre chaque corps une influence suffisamment importante pour modifier les trajectoires à long terme.
+		Dans le cas de plusieurs corps, nous devons recourir aux mêmes schémas numériques qui nous ont permis de résoudre le problème du pendule \eqref{eq-3-pendule}.
+
+		Nous allons ici modéliser le mouvement de deux corps d'abord, puis de trois.
+		On considère deux corps sphérique $C_1$ et $C_2$ de masses $m_1$ et $m_2$ et de centres :
+		\begin{equation}
+			\label{eq-3-centreCorps}
+			u_1 = \binom{x_1}{y_1} \qquad \text{et} \qquad u_2 = \binom{x_2}{y_2}
+		\end{equation}
+
+		La force gravitationnelle exercée par le corps 2 sur le corps 1 est :
+		\begin{equation}
+			F_{2\to1} = G \times \frac{m_1 m_2}{\norm{u_2 - u_1}^3}(u_2 - u_1)			
+		\end{equation}
+		avec $G = 6.67 \times 10^{-11}$ la constante de gravitation universelle. La force exercée par le $C_1$ sur $C_2$ est égale à son opposée : $F_{1\to2} = - F_{2\to1}$.
+
+		Avec la seconde loi de Newton, nous obtenons le système dynamique suivant :
+		\begin{equation}
+			\label{eq-3-gravit2}
+			\begin{cases}
+				u_1'' = +G m_2 \frac{u_2-u_1}{\norm{u_2-u_1}^3}		\\
+				u_2'' = +G m_1 \frac{u_2-u_1}{\norm{u_2-u_1}^3}		\\
+				% u_1(0) 	\qquad
+				% u_1'(0)	\qquad
+				% u_2(0)	\qquad
+				% u_2'(0)
+			\end{cases}
+		\end{equation}
+
+		On considère ce problème avec la Terre pour $C_1$ et la Lune pour $C_2$. La distance moyenne Terre-Lune est de $d_{TL} = 3.84402\times10^8$ m et la période de rotation d'environ $T = 27,55$ jours. Nous centrons le systèmes sur la Terre, nous avons les conditions intiales suivantes :
+		\begin{equation}
+			\label{eq-3-condIni2}
+			C_1
+			\begin{cases}
+				m_1 = 5.975\times10^{24}			\\
+				u_1(0) = (0 ; 0)					\\
+				u_1'(0) = (0; 0)				
+			\end{cases}			
+			\qquad\qquad
+			C_2
+			\begin{cases}			
+				m_2 = 7.35\times10^{22}				\\
+				u_2(0) = (d_{TL}; 0)				\\
+				u_2'(0) = (0; \frac{2\pi}{T}d_{TL}) 
+			\end{cases}			
+		\end{equation}
+
+		Pour pouvoir utiliser les schémas numériques, il faut vectoriser les équations sous forme du premier ordre. On a donc $v\in\R^8$ tel que le système d'équations différentielles à résoudre correspond à $v' = f(v)$.
+		\begin{equation}
+			\label{eq-3-gravit2Vect}
+			v = \begin{pmatrix}
+				u_1 	\\
+				u_1' 	\\
+				u_2 	\\
+				u_2'
+			\end{pmatrix}
+		\end{equation}
+
+		On a l'implémentation sous Scilab suivante :
+
+		\begin{listing}[H]
+			\scicode{\tdC 3-Gravitation.sce}
+			\caption{Gravitation Terre-Lune}
+			\label{code-3-gravitation2}
+		\end{listing}
+
+
+		On représente la trajectoire de la Lune (en bleu) et de la Terre (en bleu) par rapport au centre de gravité du système. On retrouve bien la trajectoire circulaire de la Lune autour de la Terre.
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.4\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdC\img 3-Gravitation.eps}
+			\caption{Gravitation Terre-Lune}
+			\label{img-3-gravitation2}
+		\end{figure}
+
+
+		% TODO : point de Lagrange
+
+
+	\subsection{Attracteur de Lorenz}
+
+		% L'attracteur de Lorenz illustre l'effet papillon : un léger chang
+		% Cond Initiales
+		% Chaos
+
+		L'attracteur de Lorenz permet de modéliser de manière simple le caractère chaotique des phénomènes météorologiques. Nous avons le système différentiel suivant :
+
+		\begin{equation}
+			\label{eq-3-systLorenz}
+			\begin{cases}
+				\dfdp{x(t)}{t} = \sigma \bigl( y(t) - x(t) \bigr) \\
+				\dfdp{y(t)}{t} = \rho \, x(t) - y(t) - x(t) \, z(t)\\
+				\dfdp{z(t)}{t} = x(t) \, y(t) - \beta \, z(t) 
+			\end{cases}
+		\end{equation}
+		avec $\sigma = 10$, $\rho = 28$, $\beta = \frac{8}{3}$.
+
+		Nous résolvons le système par le programme suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdC 4-Lorenz.sce}
+			\caption{Attracteur de Lorenz}
+			\label{code-3-Lorenz}
+		\end{listing}
+
+		Affichons les valeurs de $x,y,z$ dans un repère 3D :
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.4\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdC\img 4-Lorenz.png}
+			\caption{Attracteur de Lorenz}
+			\label{img-3-Lorenz}
+		\end{figure}
+
+		On observe que la solution forme une figure semblable à des ailes de papillon. Elle a un comportement qui peut sembler périodique mais qui est en réalité chaotique et imprévisible.
+
+		De plus, le point initial est vite attiré vers l'attracteur. On peut prendre un point plus éloigné il convergera quand même dans l'attracteur.
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.4\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdC\img 4-Lorenz_loin.png}
+			\caption{Attracteur de Lorenz avec une condition initiale éloignée}
+			\label{img-3-LorenzLoin}
+		\end{figure}
+
+
+
+	\subsection{Systèmes Proies-Prédateurs de Lotka}
+
+		Le modèle proies-prédacteurs de Lotka est un système différentiel modélisant de manière simplifier un écosystème d'une population de proies et d'une autre de ses prédateurs. On a le système suivant :
+
+		\begin{equation}
+			\begin{cases}
+				x' = ax - bxy \\
+				y' = -cy + dxy
+			\end{cases}
+		\end{equation}
+		Avec les différentes variables et paramètres : 
+		\begin{itemize}
+			\item $x$ la population de proies
+			\item $y$ la population de prédateurs
+			\item $a$ le taux de reproduction des proies,on suppose que les proies ont un accès illimité à la nourriture, elles donc une croissance exponentielle
+			\item $c$ le taux de mortalité des prédateurs
+			\item $b$ et $d$ les intéractions entre les deux populations
+		\end{itemize}
+
+		On a l'implémentation suivante :
+		\begin{listing}[H]
+			\scicode{\tdC 5-Lotka.sce}
+			\caption{Système de Lotka}
+			\label{code-3-Lotka}
+		\end{listing}
+
+		On prend différentes proportions de population entre les proies et les prédateurs.
+		On obtient les résultats suivants :
+
+		\begin{figure}[H]
+			\centering
+			\begin{subfigure}{.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth, trim=1.8cm 1.2cm 1.8cm 1.2cm, clip]{\tdC\img 5-Lotka_Curves.eps}
+				\caption{Courbes de Lotka}
+				\label{img-3-curvesLotka}
+			\end{subfigure}
+			\begin{subfigure}{.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth, trim=1.8cm 1.8cm 1.8cm 1.8cm, clip]{\tdC\img 5-Lotka_Cycles.eps}
+				\caption{Cycles de Lotka}
+				\label{img-3-cyclesLotka}
+			\end{subfigure}
+			\caption{Systèmes proies-prédateurs de Lotka}
+			\label{img-3-Lotka}
+		\end{figure}
+
+		On remarque que peut importe les populations initiales (strictement positives), l'évolution se fait de manière cyclique. On a d'abord la prolifération des proies, puis des prédateurs qui diminuent la quantité de proies, ayant moins à manger ces derniers diminuent aussi et ainsi de suite.
+

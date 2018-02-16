@@ -1,0 +1,134 @@
+\documentclass[a4paper,10pt,titlepage,openany]{report}
+
+% - Fonts et encodage
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+\usepackage{lmodern}        	% Pour l'affichage des polices
+
+% - Mise en page
+\usepackage{layout}
+\usepackage[top=2cm, bottom=2cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{float}
+\usepackage{hyperref}			% Liens sommaire
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage{mdframed}
+\usepackage{abstract}
+
+% - Maths
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}				% Pour les théorèmes
+\usepackage{mathtools}			% Pour les acollades ++
+\usepackage{xargs}
+%\usepackage[hyperref,amsmath,thmarks,thref]{ntheorem}
+
+% - Graphics et Tableaux
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{belowskip=6pt,aboveskip=-6pt}
+\captionsetup[table]{belowskip=6pt,aboveskip=6pt}
+\captionsetup[figure]{belowskip=6pt,aboveskip=6pt}
+
+
+%\usepackage{txfonts}
+
+% - Minted
+\usepackage[chapter]{minted}	% Pour le code (numéroté // chapter)
+\usepackage[french,frenchkw,algoruled,algochapter,longend]{algorithm2e}
+
+% - Infos
+\title{Cahier d'intégration MT94}
+\author{Alexandre Brasseur}
+\date{Printemps 2017}
+
+
+% ============================================================
+% 			Fonts
+% ============================================================
+	\usepackage[rm]{roboto}
+	%\usepackage[math]{kurier}
+	\renewcommand{\rmdefault}{bch}		% bch, ppl,                
+	\renewcommand{\familydefault}{\rmdefault}
+	\usepackage{fourier}
+
+\include{Chapitres/include}
+
+% ============================================================
+
+% ============================================================
+% 			Debut du document
+% ============================================================
+\begin{document}
+
+	% == PAGE DE GARDE == %
+	\include{Chapitres/titlepage}
+	\thispagestyle{empty}
+	
+	% == TABLE DES MATIERES == %
+	\tableofcontents
+	\label{sommaire}
+	\thispagestyle{empty}		% évite redondance numérotation
+
+
+	% == RESUME/MOTIVATIONS == %
+	\begin{abstract}
+		Ce cahier d'intégration a pour vocation d'exposer tout ce que j'ai pu apprendre dans l'UV MT94.
+%		Bien sûr, il est perfectible car on peut toujours faire mieux. Cependant je suis assez fier du résultat et de ce que j'ai appris en mathématiques mais aussi en Scilab et en Latex.
+		Cette introduction aux mathématiques appliquées est le juste mélange entre les théories mathématiques vues en cours, leurs applications en Travaux Pratiques avec le logiciel de calcul numérique Scilab et le compte-rendu de ces connaissances dans ce rapport en \LaTeX. On apprend donc beaucoup au cours du semestre et ce qui fait que MT94 est une très bonne UV.
+		
+		\medskip
+		Premièrement, elle permet d'appliquer toutes les connaissances mathématiques apprises depuis MT90 jusqu'à SY01. On comprend enfin comment donner un sens à toutes ses formules et comment elles servent à résoudre des problèmes. On a un aperçu du côté pratique des mathématiques. C'est un peu comme se servir d'un tournevis la première fois après l'avoir étudié pendant des années, le tournevis est cependant très complexe. On s'approche ainsi du travail de l'ingénieur et cela est plaisant.
+
+		\smallskip
+		Deuxièmement, on n'aperçoit certes qu'une partie des mathématiques appliquées, mais on a envie de continuer. Explorer entièrement tous les outils, les méthodes et leurs applications vus dans cette matière prendrait je pense plus d'un semestre. Cependant une fois lancée, cette envie de trouver de nouvelles applications, d'optimiser des algorithmes et de découvrir une nouvelle facette des mathématiques, ne s'arrête pas. Ce rapport n'est pas complet et ne le sera probablement jamais, tout comme les sciences mathématiques. Je n'ai pas la prétention d'y rapporter toutes les connaissances sur le sujet mais de continuer à y intégrer les miennes.
+
+		\smallskip
+		Troisièmement, cette UV est bien enseignée. Stéphane Mottelet et Djalil Kateb sont passionnés de mathématiques et cela se voit. Je les remercie pour avoir renforcé en moi cet intérêt pour cette science.	
+
+		Enfin, l'ensemble des codes Scilab que j'ai créé sont disponibles à cette adresse : \\ \url{https://abrasseu@gitlab.utc.fr/abrasseu/MT94.git}. Bonne lecture !
+
+%		\smallskip
+%		Ainsi ce rapport est divisé entre 3 parties
+	\end{abstract}
+	
+	% == CHAPITRES== %
+	%\part{Mathématiques Appliquées}
+
+	%\include{Chapitres/test}
+	
+	\include{Chapitres/chap1}
+	\include{Chapitres/chap2}
+	\include{Chapitres/chap3}
+	\include{Chapitres/chap4}
+	\include{Chapitres/chap5}
+	\include{Chapitres/chap6}
+	
+
+	% == ANNEXE SCILAB == %
+%	\part{Scilab}
+
+%	\part{Rappels de Mathématiques}
+
+	% == TABLES == %	
+	\listoflistings
+%	\listofalgorithms		% Mettre les algo avec les codes sources ?
+	\listoffigures
+
+
+\end{document}
+
+
+% ============================================================
+%			Idea
+% ============================================================
+% Faire algos avec complexité, comparer avec les outils Scilab, commenter
+% Mettre des points à la fin des phrases
+% IDEA : Part : technique de factorisation du code, outils utiles, bonnes pratiques, problèmes rencontrés

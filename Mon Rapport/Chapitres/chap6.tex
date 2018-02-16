@@ -1,0 +1,473 @@
+% \chapter{Équations différentielles partielles}
+\chapter{Séries de Fourier}
+\label{ch-6}
+
+% \section{Introduction}
+
+	Dans ce chapitre nous aborderons les séries de Fourier. Cet outil permet d'approcher n'importe quelle fonction périodique par une somme de fonctions sinusoïdales. Historiquement le mathématicien français Josepeh Fourier (1768-1830) a construit ce concept en étudiant la propagation de la chaleur. Commençons par étudier le même problème que lui au travers de son expérience suivante.
+
+
+\section{L'expérience de Fourier}
+
+	\paragraph{Description et modélisation}
+		L'expérience de Fourier sur la propagation de la chaleur dans un matériau est un des exemples historiques d'équation aux dérivées partielles.
+		\smallskip
+
+		Un anneau métallique est chauffé à blanc sur une partie, puis il est plongé dans du sable, un matériau isolant. Nous cherchons à étudier ce qu'il se passe entre la temps initial et l'infini où la chaleur devrait s'être diffusée dans tout l'anneau.
+
+		On suppose le rayon de l'anneau suffisamment grand devant la taille de la section afin de n'avoir qu'une propagation longitudinale selon l'anneau. On repère alors la progression de la chaleur selon l'angle $\theta$ avec $\theta_0 = 0$ l'endroit où l'anneau est chauffé initialement.
+
+		On note $u(\theta,t)$ la température de l'anneau à l'angle $\theta\in]-\pi;\pi[$ à l'instant $t\geq0$. On a l'équation aux dérivées partielles suivantes :
+		% \begin{equation}
+			% \label{eq-6-edpTemp}
+			$$
+			c \times \rho \times \dfdp{u}{t} - \lambda \dfdpp{u}{\theta}{2} = 0
+			$$
+		% \end{equation}
+		où $c$ est la capacité calorifique, $\rho$ la masse linéique et $\lambda$ la conductivité thermique.
+
+		En posant $d = \frac{\lambda}{c\rho}$ on a :
+		\begin{equation}
+			\label{eq-6-edpTempRed}
+			\dfdp{u}{t} - d \dfdpp{u}{\theta}{2} = 0
+		\end{equation}
+		\smallskip
+
+		Pour des raisons pratiques, on supppose une symétrie de la chaleur dans l'anneau :
+		$$
+			\forall\theta\in[-\pi;\pi] : ~ u(\theta,t) = u(-\theta,t)
+		$$
+		$u$ est alors paire et on travaillera donc sur l'intervalle $I=[0;\pi]$.
+		On suppose aussi $u(\theta,t)$ dérivable par rapport à $\theta$.
+
+	\paragraph{Conditions}
+		On ajoute les conditions aux limites : $\forall t \geq 0$
+		\begin{equation}
+			\label{eq-6-condLimite}
+			\dfdp{u}{\theta}(0,t) = \dfdp{u}{\theta}(\pi,t) = 0
+		\end{equation}
+		et la condition initiale :
+		\begin{equation}
+			\label{eq-6-condIni}
+			u(\theta, 0) = f(\theta) \qquad \forall\theta\in I
+		\end{equation}
+
+	\paragraph{Construction de \texorpdfstring{$u_n$}{un}}
+		On cherche $u$ sous la forme à variables séparées : \quad $u(\theta,t) = g(\theta)h(t)$.\\
+		On a :
+		\begin{align}
+			\notag
+			\eqref{eq-6-edpTempRed} \implies& g(\theta)h'(t) - dg''(\theta)h(t) = 0		\\
+									\iff& \frac{g''(\theta)}{g(\theta)} = \frac{h'(t)}{d\times h(t)} = C
+									\label{eq-6-const}
+		\end{align}
+		Les deux parts de l'équation \eqref{eq-6-const} dépendent de variables différentes donc elles sont égales à la même constante $C\in\R$.
+		On trouve alors $h$ et $g$ :
+		\begin{align*}
+			\eqref{eq-6-const} 	&\implies h'(t) = Cdh(t)		\\
+								&\implies h(t) = \gamma e^{Cdt}	\qquad \gamma \in\R
+		\end{align*}
+		De plus $d>0$ donc si $C>0$ alors $h(t) \limto{t}{\infty} \infty$. Or cela n'est pas plausible physiquement, ainsi $C\leq0$.
+
+		$$
+			\eqref{eq-6-const} \implies g''(\theta) - Cg(\theta) = 0
+		$$
+		On pose $C=-\omega^2$
+		$$
+			g''(\theta) + \omega^2 g(\theta) = 0 \implies g(\theta) = \alpha \cos(\omega\theta) + \beta \sin(\omega\theta)
+		$$
+		Comme $u$ (et donc $g$) est paire par rapport à $\theta$, $\beta=0$. De plus on a :
+		\begin{align*}
+			\eqref{eq-6-condLimite} &\implies -\alpha\omega \sin(\omega\pi) \times ke^{Cdt} = 0		\\
+										&\implies \sin(\omega\pi) = 0	\\
+										&\implies \lambda = n \in \N
+		\end{align*}
+		$$
+			g(\theta) = \alpha \cos(n\theta) \qquad \forall n\in\N
+		$$
+
+		Ainsi :
+		\begin{equation}
+			\label{eq-6-un}
+			u_n(\theta,t) = \alpha_n \cos(n\theta) e^{-dn^2t}
+		\end{equation}
+		est solution de \eqref{eq-6-edpTempRed} et des deux conditions limites \eqref{eq-6-condLimite} mais pas encore de la condition initiale \eqref{eq-6-condIni}.
+
+	\paragraph{Construction de la Série}
+
+		Toute combinaison linéaire de $u_n$ est solution.
+		On pose alors :
+		\begin{equation}
+			\label{eq-6-uSerie}
+			u(\theta,t) = \sum_{n\geq0} \alpha_n \cos(n\theta) e^{-dn^2t}
+		\end{equation}
+		vérifiant les conditions \eqref{eq-6-condLimite} et \eqref{eq-6-condIni} par construction à partir \eqref{eq-6-un}.
+		$$
+			\eqref{eq-6-condIni} \implies u(\theta,0) = \sum_{n\geq0} \alpha_n \cos(n\theta) = f(\theta)	\quad \forall\theta\in[0.\pi]\\
+		$$
+ 
+		D'une part, on a $\forall n > 0$ :
+		\begin{align*}
+			\int_0^\pi \cos(n\theta) \dint{\theta} = 0
+				% TODO : expliquer l'implication
+				&\implies \int_0^\pi \alpha_n\cos(n\theta) \dint{\theta} = \int_0^\pi f(\theta) \dint{\theta}		\\
+				&\iff \pi\alpha_0 = \int_0^\pi f(\theta) \dint{\theta} \\
+				&\iff \alpha_0 = \frac{1}{\pi}\int_0^\pi f(\theta) \dint{\theta} 
+		\end{align*}
+		Ainsi $\alpha_0$ est la chaleur moyenne.
+
+		D'autre part :
+		$$
+			\int_0^\pi cos(n\theta) cos(k\theta) \dint{\theta} = 0 \quad\text{si } k\neq n
+				\quad\text{et}\quad
+			\int_0^\pi cos^2(n\theta) \dint{\theta} = \frac{\pi}{2}
+		$$
+		Donc :
+		\begin{align*}
+			\int_0^\pi \sum_{n\geq 0} cos(n\theta) cos(k\theta) \dint{\theta} = \int_0^\pi f(\theta) cos(k\theta) \dint{\theta}
+				\iff &\alpha_k \int_0^\pi cos^2(k\theta) \dint{\theta} = \int_0^\pi f(\theta) cos(k\theta) \dint{\theta}	\\
+				\iff &\alpha_k = \frac{2}{\pi} \int_0^\pi f(\theta) cos(k\theta) \dint{\theta}
+		\end{align*}
+
+		On a ainsi entièrement défini la série de Fourier \eqref{eq-6-uSerie}.
+
+		Si on néglige les termes dont $n\geq 2$ (ils sont négligeables car alors $e^{-dn^2t}$ est proche de zéro), $u(\theta,t)$ peut être approché par :
+		$$
+			u(\theta,t) \simeq \alpha_0 + \alpha_1 \cos\theta e^{-dt}
+		$$
+
+\section{Séries de Fourier}
+	
+	\begin{definition}[Polynôme trigonométrique]
+		Toute fonction de la forme
+		\begin{equation}
+			\label{eq-6-polyTrigo}
+			P_n(x) = \frac{a_0}{2} + \sum_{k=1}^n a_k \cos \left( \frac{2k\pi}{T}x \right) + b_k \sin \left( \frac{2k\pi}{T}x \right)
+		\end{equation}
+		avec $T$ la période et la fréquence $\omega = \frac{2\pi}{T}$.
+	\end{definition}		
+	\begin{prop}
+		Si $\suite{a}$ et $\suite{b}$ sont décroissants et tendent vers $0$ alors $P_n(x)$ converge pour tout $x$.
+	\end{prop}
+
+	\begin{definition}[Série trigonométrique]
+		Toute fonction de la forme :    
+		\begin{equation}
+			\label{eq-6-serieTrigo}
+			f(x) = \lim_{n\to\infty} P_n(x)
+		\end{equation}
+		On suppose que la série converge pour tout $x$.
+	\end{definition}		
+
+	\medskip
+
+	\begin{definition}[Convergence simple]
+		On dit que $P_n$ converge simplement vers $f$ si :
+		$$
+			\forall\epsilon >0, \forall x \in [0;T], \exists N \in\N \tq \forall n \in \N : n>N \implies \abs{P_n(x) - f(x)} < \epsilon
+		$$
+	\end{definition}
+	\begin{definition}[Convergence uniforme]
+		On dit que $P_n$ converge uniformément vers $f$ si :
+		$$
+			\forall\epsilon >0, \exists N \in\N \tq \forall x \in [0;T], \forall n \in \N : n>N \implies \abs{P_n(x) - f(x)} < \epsilon
+		$$
+		% TODO th de la convergeance dominée...
+	\end{definition}
+
+	Si $P_n$ converge vers $f$ uniformément alors on peut montrer que :
+	\begin{align*}
+		a_n &= \frac{2}{T} \int_0^T f(x)\cos(n\omega x) \dint{x}		\\
+		b_n &= \frac{2}{T} \int_0^T f(x)\sin(n\omega x) \dint{x}
+	\end{align*}
+	avec la pulsation $\omega = \frac{2\pi}{T}$. L'intégrale peut être centrée sur $[-\frac{T}{2}; \frac{T}{2}]$, l'essentiel étant qu'elle soit de longueur $T$.
+
+	\begin{definitionShort}
+		Un point de discontinuité de première espèce a une limite à gauche et à droite.
+	\end{definitionShort}
+	$\sin(\frac{1}{x})$ possède une discontinuité de seconde espèce en $0$ (pas de limites).
+
+	\begin{theoreme}[Théorème de Dirichlet]
+		\label{th-6-dirichlet}
+		Soit $f$ une fonction périodique telle que :
+		\begin{itemize}
+			\item les discontinuités de $f$ dans un période sont en nombre fini et de première espèce
+			\item $f$ admet une dérivée à gauche et à droite
+		\end{itemize}
+		Alors $S(x) = P_n(x)$ converge et on a :
+		\begin{equation}
+			S(x) = \begin{dcases*}
+				\frac{f(x^+) + f(x^-)}{2}	& si $f$ est discontinue en $x$	\\
+				f(x)						& sinon
+			\end{dcases*}
+		\end{equation}
+		avec $f(x^+)$ la limite à droite et $f(x^-)$ celle à gauche.
+		La convergeance est uniforme sur tout intervalle où $f$ est continue.
+	\end{theoreme}
+
+	% TODO Filtre de Karman ???
+	% TODO Fonction de carré intégrable
+	% TODO : contre exemple : fonction de Weirstrass
+
+	Pour calculer n'importe quel série de Fourier réelle dans Scilab, j'ai créé le code suivant :
+
+	\begin{listing}[H]
+		\scicode{\tdF 0.1-Exemple_Calcul_Serie.sce}
+		\caption{Exemple du calcul d'une Série de Fourier}
+		\label{code-6-calculSerie}
+	\end{listing}
+
+	Les différents paramètres sont :
+	\begin{itemize}
+		\item \code{a0} 
+		\item \code{a(x,n,T)} et \code{b(x,n,T)} les fonctions permettant de calculer les coefficients $a_n$ et $b_n$, on peut aussi passer $0$ si le coefficent est nul afin d'éviter des appels inutiles
+		\item \code{x} le vecteur des abscisses discrétisé pour lesquelles on calcule la série.
+		\item \code{T} la période
+		\item \code{NB_ITE}	le nombre d'itérations $n$ pour calculer la série
+	\end{itemize}
+
+	Cela permet de calculer n'importe quelle série simplement en renseignant ces quelques paramètres.
+
+	\bigskip
+
+	% \subparagraph{Cas complexe}
+		Dans le cas complexe, la série est définie de la façon suivante :
+		\begin{equation}
+			S(x) = \sum_{n \in \Z} c_n e^{i \times n \omega x}
+		\end{equation}
+		Avec les coefficients complexes $c_n$ tels que :
+		\begin{equation}
+			c_n = \frac{1}{T} \int_{-T/2}^{T/2} f(t) e^{-i \times n \omega t} \dint{t}
+		\end{equation}
+
+		% TODO : étoffer
+
+		
+	% \subsection{Exemples A TRIER}
+
+	% a.
+	% 	Soit $f:\R\to\R$ périodique de période $T=2\pi$ vérifiant $f(x)=x ~\forall x\in]-\pi;\pi[$.
+	% 	% TODO : Figure
+	% 	On a alors :
+	% 	\begin{align}
+	% 		a_n &= \frac{1}{\pi} \int_{-\pi}^\pi x\cos(n x) \dint{x} = 0 \quad\text{car impaire}		\\
+	% 		b_n &= \frac{1}{\pi} \int_{-\pi}^\pi x\sin(n x) \dint{x} = \frac{2}{\pi} \int_0^\pi x\sin(n x) \dint{x}
+	% 			= \frac{2}{n\pi} (-1)^{n+1}
+	% 	\end{align}
+	% 	$$
+	% 		\forall x \in]-\pi;\pi[ : \quad f(x) = x = \frac{2}{n\pi} \sum_{n>0} (-1)^{n+1} \frac{\sin(nx)}{n}
+	% 	$$
+
+
+\section{Applications}
+
+	\subsection{Phénomène de Gibbs}
+		Prenons la fonction $f$ de période $2\pi$ telle que :
+		\begin{equation}
+			f(x) = \begin{cases}
+				-1		&	\forall x \in [-\pi;0[	\\
+				1		&	\forall x \in [0; \pi[
+			\end{cases}
+		\end{equation}
+		On a les termes $a_n$ et $b_n$ :
+		\begin{align}
+			a_n &= \frac{1}{\pi} \int_{-\pi}^\pi f(x)\cos(n x) \dint{x} = 0 \quad\text{car impaire}		\\
+			b_n &= \frac{1}{\pi} \int_{-\pi}^\pi f(x)\sin(n x) \dint{x}
+				= \frac{1}{\pi} \int_0^\pi \sin(nx) \dint{x}
+				= \frac{2}{n\pi} (1 - \cos(n\pi)) = \frac{2}{n\pi}(1-(-1)^n)
+		\end{align}
+		Ainsi seules les termes avec $n$ impair ne sont pas nuls, on pose $n=2p+1$ et on obtien la série de Fourier correspondante : 
+		\begin{equation}
+			S(x) = \frac{4}{\pi} \sum_{p\geq0} \frac{\sin((2p+1)x)}{2p+1}
+		\end{equation}
+		Comme le prévoit le théorème de Dirichlet \eqref{th-6-dirichlet}, on n'a pas égalité entre $f(x)$ et $S(x)$ aux points de discontinuité (ici de la forme $x=k\pi$ avec $k$ impair) mais bien une moyenne des deux limites, ici $\frac{-\pi + \pi}{2} = 0$.
+		Que se passe-t-il donc à ces points de discontinuité ?
+
+		Découvrons le avec le code suivant :
+		\begin{listing}[H]
+			\scicode{\tdF 1-Phenomene_Gibbs.sce}
+			\caption{Phénomène de Gibbs}
+			\label{code-6-phenomeneGibbs}
+		\end{listing}
+
+		Ici nous allons calculer la série de Fourier d'un signal carré de période $T = 2\pi$ défini par :
+		\begin{align*}
+			\forall x \in [-\pi;0[ : &	f(x) = -1		\\
+			\forall x \in [0;\pi] : &	f(x) = 1		\\
+		\end{align*}
+		% TODO Finir
+
+		Nous obtenons le rendu suivant :
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.6\linewidth, trim=2cm 2cm 2cm 2cm, clip]{\tdF\img 1-Phenomene_Gibbs.eps}
+			\caption{Phénomène de Gibbs}
+			\label{img-6-phenomeneGibbs}
+		\end{figure}
+
+		On observe des oscillations aux voisinage des points de discontinuité. Ces erreurs d'approximation sont dues au fait que $S$ ne converge pas uniformément vers $f$ aux points de discontinuité.
+		Ceci est appelé le phénomène de Gibbs.
+		% Elles sont de l'ordre de 9\% de dépassement de la valeur limite de chaque coté.
+		% TODO : Vérif ?
+
+	\subsection{Régularité et décroissance des coefficients}
+
+		Nous allons ici comparer trois séries de Fourier approchant la fonction $f$ suivante sur $[0; \frac{1}{2}]$ :
+		\begin{equation}
+			\label{eq-6-fComp}
+			f(x) = x(x-1)
+		\end{equation}
+
+		Nous avons les trois fonctions suivantes qui vont nous servir pour les séries de Fourier :
+		\begin{itemize}
+			\item $f_1$ de période $T_1 = \frac{1}{2}$ : \qquad\qquad\quad~~ $\forall x\in[0;\frac{1}{2}] : \quad f_1(x) = f(x) $	
+			\item $f_1$ paire de période $T_2 = 1$ : \qquad\quad\, $\forall x\in[0;\frac{1}{2}] : \quad f_2(x) = f(x) $		
+			\item $f_1$ impaire de période $T_3 = 2$ : \qquad $\forall x\in[0;1] : \quad f_3(x) = f_2(x) $	
+		\end{itemize}
+
+		\bigskip
+		On calcule les différents coefficents $a_n$ et $b_n ~ \forall n>0$ :
+		\medskip
+		\begin{itemize}
+			\item Pour $f_1$ : $\omega = 4\pi$
+				\\ \smallskip\qquad
+				$\left\lvert \quad
+				\begin{aligned}
+					a_n &= 4 \int_0^\frac{1}{2} x(x-1) \cos(4\pi n x) \dint{x} = ... = \frac{1}{4\pi^2n^2}		\\
+					b_n &= 4 \int_0^\frac{1}{2} x(x-1) \sin(4\pi n x) \dint{x} = ... = \frac{1}{4\pi n}			\\
+					a_0 &= \frac{1}{3}
+				\end{aligned}
+				\right.$\smallskip	\\
+				La vitesse de décroissance des coefficients de $f_1$ est $1$ (on prend le minimum des deux coefficients). 
+				Cela signifie que la fonction n'est pas régulière en tous points, en effet au point de discontinuités on a $S\neq f_1$ d'après le théorème \ref{th-6-dirichlet}. Cela est dû au fait que la fonction $f_1$ est discontinue.
+				\bigskip
+
+			\item Pour $f_2$ : $\omega = 2\pi$
+				\\ \smallskip\qquad
+				$\left\lvert \quad
+				\begin{aligned}
+					a_n &= 2 \int_{-\frac{1}{2}}^\frac{1}{2} f_2(x) \cos(2\pi nx) \dint{x}
+						= 4 \int_0^\frac{1}{2} x(x-1) \cos(2\pi nx) \dint{x}
+						= ... = \frac{1}{\pi^2n^2}	\\
+					b_n &= 0 \qquad \text{car $f_2$ est paire ??}		\\
+					a_0 &= \frac{1}{3}
+				\end{aligned}
+				\right.$\smallskip	\\
+				La vitesse de décroissance des coefficients de $f_2$ est $2$. 
+				On a donc $S = f_2$ car la fonction est continue.
+				\bigskip
+
+			\item Pour $f_2$ : $\omega = \pi$
+				\\ \smallskip\qquad
+				$\left\lvert \quad
+				\begin{aligned}
+					a_n &= 0 \qquad \text{car $f_2$ est impaire ??}		\\
+					b_n &= %2 \int_{-\frac{1}{2}}^\frac{1}{2} f_2(x) \cos(2\pi nx) \dint{x}
+						%= 4 \int_0^\frac{1}{2} x(x-1) \cos(2\pi nx) \dint{x}
+						 ... = 4 \frac{(-1)^n - 1}{\pi^3 n^3}	\\
+					a_0 &= 0
+				\end{aligned}
+				\right.$\smallskip	\\
+				La vitesse de décroissance des coefficients de $f_3$ est $3$. 
+				Ici, en plus d'être continue et $S = f_3$, la fonction est également continûment dérivable.
+				\bigskip
+		\end{itemize}
+
+		Ainsi le choix de la fonction périodique $f_i$ pour la série impacte la convergence de celle-ci vers $f$. Plus les coefficients décroissent vite, plus la convergence est élevée.
+		
+		Vérfions cela expérimentalement avec Scilab :
+
+		\begin{listing}[H]
+			\scicode{\tdF 2-Comparaison_Continuite.sce}
+			\caption{Comparaison de séries}
+			\label{code-6-compContinuite}
+		\end{listing}
+
+		On calcule d'abord les trois séries avec la fonction \ref{code-6-calculSerie} pour $n=400$ points, puis on affiche les séries et la fonction d'origine $f$ sur le même graphe. Ensuite on calcule l'écart entre la fonction $f$ et les différentes séries, on l'affiche.
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.8\linewidth, trim=2cm 0cm 2cm 0cm, clip]{\tdF\img 2-Comparaison_Continuite.eps}
+			\caption{Différences entre les séries}
+			\label{img-5-compContSeries}
+		\end{figure}
+
+		On remarque sur les deux graphiques que $S_3$ est bien plus proche de $f$ que $S_2$ et encore plus $S_1$. Cela confirme donc bien que plus les coefficients décroissent, plus la série converge et est proche de $f$.
+
+	\subsection{Propagation de la chaleur}
+		
+		Nous allons simuler ici l'expérience de Fourier.
+		Nous prenons $d=1$, la fonction de départ $f(\theta)$ est définie par $\lambda\in]0;\pi[$ :
+		$$
+			f(\theta) = \begin{cases}
+				1	&	\text{si } x\in[\pi-\lambda; \pi+\lambda]		\\
+				0	&	\text{sinon}
+			\end{cases}
+		$$
+		On prend ici $\lambda = \frac{\pi}{2}$.
+
+		Nous calculons les coefficients de la série de Fourier correspondante :
+		\begin{align*}
+			T = 2\pi \implies \omega &= \frac{2\pi}{T} = 1 \\
+			f \text{ est paire donc } b_n &= 0 \\
+			a_n &= \frac{1}{\pi} \int_{-\pi}^{\pi} f(x) \cos(n\omega x) \dint{x}
+				= \frac{2}{\pi} \int_0^\pi f(x) \cos(n x) \dint{x}	\\
+				&= \frac{2}{\pi} \int_{\pi-\lambda}^\pi \cos(n x) \dint{x}
+				= \frac{2}{n\pi} \left( \sin(n\pi)-\sin(n(\pi - \lambda)) \right) \\
+				&= \frac{-2}{n\pi} \sin(n(\pi-\lambda)) \\
+			a_0 &= \frac{1}{2\pi} \int_0^{2\pi} f(x) \dint{x} = 2 \frac{\lambda}{\pi}
+		\end{align*}
+		
+		Il suffit ensuite de calculer la série correspondante avec le programme suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdF 3-Chaleur.sce}
+			\caption{Chaleur}
+			\label{code-6-chaleur}
+		\end{listing}
+
+		La série n'est alors pas définie pour $t=0$ car nous avons $u(\theta, 0) = f(\theta)$. Nous choisissons $t_0$ légèrement supérieur à 0 pour éviter le phénomène de Gibbs.
+
+
+		J'ai fait diverses visualisations animées mais sur la suivante nous permet de voir l'évolution de la chaleur en fonction du temps et de $\theta$.
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.6\linewidth, trim=1cm 1cm 1cm 1cm, clip]{\tdF\img 3a-Chaleur.png}
+			\caption{Évolution de la chaleur}
+			\label{img-6-Chaleur}
+		\end{figure}
+
+		Les points blancs correspondent aux points les plus chauds et les noirs aux plus froids.
+
+		Nous pouvons aussi visualiser la propagation de la chaleur dans un anneau avec l'animation. Prenons deux temps on observons :
+		\begin{figure}[H]
+			\centering
+			\begin{subfigure}{.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth, trim=1cm 1cm 1cm 1cm, clip]{\tdF\img 3b-Chaleur_t08.png}
+				\caption{Chaleur pour $t=0.5$}
+			\end{subfigure}
+			\begin{subfigure}{.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth, trim=1cm 1cm 1cm 1cm, clip]{\tdF\img 3b-Chaleur_fin.png}
+				\caption{Chaleur pour $t=6$}
+			\end{subfigure}
+			\caption{Propagation de la chaleur dans l'anneau}
+			\label{img-6-anneauChaleur}
+		\end{figure}
+
+
+
+
+
+
+% TODO : somme to integrale Riemann
+
+% Théorème : 
+% Si an et bn tendent vers 0 alors la série converge vers une fonction
+% Si an et bn simplement bornés alors converge vers une distribution
+% 
+% Td Chaleur
+% (an cos + bn sin)*e^azdazd tend très vite vers 0 et donc si on remplace an et bn par random on obtient quand meme une fonction assez régulière

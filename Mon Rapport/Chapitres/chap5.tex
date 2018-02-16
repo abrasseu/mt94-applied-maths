@@ -1,0 +1,562 @@
+\chapter{Optimisation}
+\label{ch-5}
+
+% \section{Introduction}
+	
+		Un problème d'optimisation dans $\R^n$ peut se présenter de deux manière différentes.
+		Soit nous cherchons à minimiser (respectivement maximiser) une fonction $f$, c'est-à-dire trouver $x^* \tq f(x^*) \leq f(x) ~\forall x$ (respectivement $f(x^*)\geq f(x) $).
+		% Nous verrons ce type d'optimisation dans la partie .
+		Soit nous cherchons à trouver un modèle $f$ qui corresponde le mieux à des données. Ces deux problèmes, bien qu'initialement différents, se résolvent quasiment de la même manière. Nous verrons cela au long du chapitre. 
+
+\section{Optimisation}
+
+	\subsection{Cadre statistique}
+		A partir de $n$ données $(x_i, y_i)$ on cherche un modèle $f(x, \theta)$ paramétré par $\theta$.
+
+		Ainsi $x \in \R$ est la variable indépendante, $y \in \R^n$ la variable dépendante de $x$ qui correspond aux résultats observés selon les conditions $x$, et $\theta \in \R^p$ les $p$ paramètres du modèle $f$.
+		Il faut d'abord choisir un modèle pertinent et ensuite trouver les paramètres qui permettent de minimiser les écarts entre le modèle théorique et les résultats obtenus expérimentalement afin d'obtenir le modèle paramétré le plus vraisemblable face aux données.
+
+		Comme les $y_i$ sont des mesures, il y a forcément des incertitudes : ce sont donc des variables alétoires que l'on suppose statistiquement indépendantes telles que :
+		\begin{equation}
+			\label{eq-5-yiEpsilon}
+			y_i = f(x_i, \theta) + \epsilon_i
+		\end{equation}
+		
+		Où toute la partie aléatoire est contenue dans la variable aléatoire $\epsilon_i$ d'espérance nulle (il y a autant de probablité de sur-estimer que de sous-estimer $y_i$) et de variance $\sigma^2$. $\epsilon$ représente ainsi les erreurs de mesures.
+
+		On pose $g$ la densité de $\epsilon$.
+		La densité de probabilité de $y_i$ est alors :
+		$$
+			\phi_i(y_i,\theta) = g(y - f(x_i, \theta))
+		$$
+		Et on a :
+		$$
+			E[y_i|\theta] = f(x_i,\theta)
+		$$
+
+		Les $(y_i)_{i=1..n}$ sont indépendants, la densité conjointe du vecteur $Y = (y_1, ..., y_n)$ est alors :
+		\begin{equation}
+			\label{eq-5-phi}
+			\phi(Y, \theta) = \prod_{i=1}^n \phi_i(y_i,\theta)
+		\end{equation}
+		
+		Ainsi la probabilité que les données expérimentales se trouvent dans un certain domaine $D\in\R^n$ est :
+		$$
+			\proba(Y \in D | \theta) = \int_D \phi(Y, \theta) dY
+		$$
+
+		On définit maintenant $L(\theta,Y) = \phi(Y, \theta)$ la fonction de vraisemblance (\emph{Likelihood function} en anglais, d'où le $L$). Sa différence avec $\phi$ la densité de $Y$ où $\theta$ est fixé et $Y$ est la variable aléatoire; est que cette fois $Y$ est fixé par les données obtenues expérimentalement et les paramètres $\theta$ constituent la variable, de sorte que la plus haute vraisemblance est atteinte pour $\hat\theta$ tel que :
+		$$
+			\hat\theta = \arg \max_{\theta \in \R^p} L(\theta,Y)
+		$$
+
+		A partir de là, on peut effectuer différentes hypothèses sur la densité de $\epsilon$ qui donneront des méthodes différentes.
+
+
+	\subsection{Méthode des moindres carrés}
+
+		Pour cette méthode, on suppose que $\epsilon$ suit une loi normale $\mathcal{N}(0, \sigma^2)$ :
+		\begin{equation}
+			\label{eq-5-errorLSM}
+			g(\epsilon) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp^{-\frac{1}{2\sigma^2} \times \epsilon^2} 
+		\end{equation}
+		On a donc :
+		$$
+			\phi_i(y_i,\theta) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp^{-\frac{1}{2\sigma^2} \times \left( y - f(x_i, \theta)\right)^2} 
+		$$
+
+		A partir de \eqref{eq-5-phi}, on obtient $\phi$ puis directement $L$ :
+		\begin{align*}
+			L(\theta,Y) 	&= \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp^{-\frac{1}{2\sigma^2} \times \left( y - f(x_i, \theta)\right)^2}
+			\\
+			&= \frac{1}{\sqrt{2\pi\sigma^2}} \exp^{-\frac{1}{2\sigma^2} \times \sum_{i=1}^n \left( y - f(x_i, \theta)\right)^2}
+		\end{align*}
+
+		Maximiser $L$, et donc une exponentielle, revient à minimiser la somme des carrés.
+		$$
+			\hat\theta = \arg \max_{\theta \in \R^p} L(\theta,Y) = \arg \min_{\theta \in \R^p} S(\theta) 
+		$$
+		Ainsi nous ramenons le problème de maximisation de $L(\theta,Y)$ à la minimisation de $S(\theta)$ définie par :
+
+		\begin{equation}
+			\label{eq-5-LSM}
+			S(\theta) = \sum_{i=1}^n \left( y_i - f(x_i, \theta)\right)^2 = \sum_{i=1}^n ( r_i(\theta) )^2 = \norm{r(\theta)}^2
+		\end{equation}
+
+		On appelle $r(\theta)$ le vecteur des résidus.
+		En partant de l'hypothèse que la distribution de $\epsilon$ est Gaussienne \eqref{eq-5-errorLSM}, on obtient ainsi la méthode des moindres carrés \eqref{eq-5-LSM}.
+
+
+	\subsection{Méthode de la moindre déviation absolue}
+
+		Pourquoi utiliser la somme des normes au carré et non seulement la somme des normes
+		On suppose ici que $\epsilon$ suit une distribution de Laplace :
+		\begin{equation}
+			\label{eq-5-errorLADM}
+			g(\epsilon) = \frac{1}{\sqrt{2 \sigma^2}} \exp^{-\frac{\sqrt{2}}{\sigma} \times \abs{\epsilon}} 
+		\end{equation}
+
+		Ce qui nous donne :
+		\begin{align*}
+			L(\theta,Y) 	&= \prod_{i=1}^n \frac{1}{\sqrt{2 \sigma^2}} \exp^{-\frac{\sqrt{2}}{\sigma} \times \abs{y - f(x_i, \theta)}}
+			\\
+			&= \prod_{i=1}^n \frac{1}{\sqrt{2 \sigma^2}} \exp^{-\frac{\sqrt{2}}{\sigma} \times \sum_{i=1}^n \abs{y - f(x_i, \theta)}}
+		\end{align*}
+
+		Ainsi nous obtenons :
+		\begin{equation}
+			\label{eq-5-LADM}
+			S(\theta) = \sum_{i=1}^n \abs{y - f(x_i, \theta)}
+		\end{equation}
+
+		Cependant cette hypothèse pose déjà un problème, $S$ n'est pas différentiable.
+		C'est pourquoi on préfère généralement utiliser la méthode des moindres carrés \eqref{eq-5-LSM} qui fournit un bon support si l'on ne connaît pas la distribution des incertitudes $\epsilon$ pour une expérience.
+
+		% TODO : image de comparaison
+
+
+		On voit bien que la méthodes des moindres carrés et celle de la moindre déviation absolue ont des distributions différentes, ainsi les paramètres obtenus avec les même données pour chaque méthode seront différents.
+
+	% \subsection{Évaluation des solutions}
+	% 	Comme les données $y$ sont des variables aléatoires, la solution $\hat\theta$ l'est aussi.
+
+	% 	On peut trouver l'intervalle de confiance de (la distribution de ???) $\hat\theta$ par deux méthodes :
+
+	% 	La méthode de Monte-Carlo : % TODO
+
+	% 	Statistiques linéairisées : % TODO
+
+
+
+
+	\subsection{Sélection des modèles}
+	    De plus on se peut se demander quel modèle choisir par ceux entraînés : par exemple dans le cas d'une régression polynomiale quel degré choisir ? En effet plus le degré du polynome augmente, plus l'erreur diminue.
+
+	    Le principe est le suivant : on sépare les données en deux sets, un set de validation $V$ pour calculer l'erreur et son complémentaire $T$ qui sert à former le modèle.
+	    On forme d'abord les paramètres $\theta$ avec $T$, il s'agit de la phase d'apprentissage.
+	    On choisit alors le modèle réalisant l'erreur minimale sur le set de validation $S_V(\theta_k)$, on valide donc le bon modèle sur des données sur lesquelles il n'a pas été entraîné.
+
+	    Cependant le choix des sets impacte la qualité de la validation : par exemple si on sépare les données en deux à partir d'une certaine valeur, on observera une extrapolation assez brutale qui ne coïncidera que très peut avec le set $V$.
+	    Pour éviter ce genre de biais, on préfèrera utiliser chaque donnée dans les deux types de sets, en réalisant les tests sur plusieurs sets $T$ et $V$. Cette validation croisée est utile notamment quand le set $T$ n'est pas très équilibré.
+
+\section{Problème linéaires}
+
+	% \subsection{Linéarité}
+		% Le modèle $y = f(x, \theta)$ est dit linéaire si
+		% $$
+		% 	y = \sum_{k=1}^p \theta_k \Phi_k(x)
+		% $$
+
+
+	\subsection{Régression polynomiale}
+		On a $y = \sum_{k=0}^d \theta_k x^k = \theta_0 + \theta_1 x + ... + \theta_d x^d$ un modèle polynomiale de degré $d$. En utilisant la méthode des moindres carrés, on a :
+		$$
+			S(\theta) = \sum_{i=1}^n \left( \sum_{k=0}^d \theta_k x^k - y_i \right) = \norm{r(\theta)}^2 
+		$$
+
+		Le vecteur résiduel $r$ s'écrit alors :
+		Que l'on décompose :
+		\begin{equation}
+			\label{eq-5-rLSM}
+			r(\theta) = A\theta - y
+		\end{equation}
+		où
+		$$
+			r_i(\theta) = \begin{pmatrix}
+							1 & x_i & \ldots & x_i^d 
+						\end{pmatrix}
+						\begin{pmatrix}
+							\theta_0 \\
+							\theta_1 \\
+							\vdots \\
+							\theta_d \\
+						\end{pmatrix}
+		$$
+		Avec $A$ la matrice de Vandermonde suivante :
+		\begin{equation}
+			\label{eq-5-matVandermonde}
+			A = \begin{pmatrix}
+					1	& x_1	& x_1^2 & ... & x_1^d \\
+					1	& x_2	& x_2^2 & ... & x_2^d \\
+					\vdots	& \vdots	& \vdots & \ddots & \vdots \\
+					% 1	& x_i	& x_i^2 & ... & x_i^d \\
+					1	& x_n	& x_n^2 & ... & x_n^d
+				\end{pmatrix}
+		\end{equation}
+
+		Cette matrice particulière est inversible si et seulement si les $x_i$ sont tous distincts.
+
+		Ainsi on ramène le problème initial à trouver le minimum de $S$, $\hat\theta$ tel que :
+		$$
+			\grad S(\theta) = \grad \norm{A \hat\theta - Y}^2 = 0
+		$$
+		On trouve le gradient grâce au développement limité suivant :
+		\begin{align*}
+			S(\theta + h) 	&= \norm{A(\theta+h)-Y}^2 = \norm{A\theta-Y+Ah}^2								\\
+							&= (A\theta-Y+Ah)^T (A\theta-Y+\alpha)											\\
+							&= (A\theta-Y)^T(A\theta-Y) + (A\theta-Y)^T Ah + (Ah)^T (A\theta-Y) (Ah)^T Ah	\\
+							&= \norm{A\theta-Y}^2 + 2(A\theta-Y)^T Ah + \norm{Ah}^2							\\
+							&= S(\theta) + \grad S(\theta)^T h + \norm{Ah}^2
+		\end{align*}
+		Par identification $\norm{Ah}^2\limto{h}{0}0$ est le reste et on a le gradient :
+		\begin{equation}
+			\label{eq-5-gradLLS}
+			\grad S(\theta) = 2 A^T (A\theta -y)
+		\end{equation}
+
+		La solution $\hat\theta$ est donnée par :
+		\begin{align*}
+			\grad S(\hat\theta) = 0	&\iff 2 A^T (A\hat\theta -y) = 0		\\
+									&\iff A^T A\hat\theta - A^Ty = 0		\\
+									&\iff A^T A\hat\theta = A^Ty		
+		\end{align*}
+		Cette solution est unique si le rang de $A$ est $p$ : $A^T A\hat\theta = A^Ty \implies A\hat\theta = y$.
+		Il n'y a plus qu'à résoudre le système linéaire par la méthode de Gauss\footnote{Simplement faire $\theta = A\backslash y$ sous Scilab}.
+
+		\begin{proof}
+			$\forall \theta \in \R^p :$
+			\begin{align*}
+				S(\theta) = S(\hat\theta + \theta - \hat\theta)
+					&= S(\hat\theta) + \grad S(\hat\theta)^T (\theta - \hat\theta) + \norm{A(\theta -\hat\theta)}^2 \\
+					&= S(\hat\theta) + \norm{A(\theta -\hat\theta)}^2 \\
+					&\geq S(\hat\theta)
+			\end{align*}
+			Donc $\hat\theta$ est solution minimale de $S$.
+
+			\begin{align*}
+				S(\hat\theta) = S(\theta) 	&\iff \norm{A(\theta - \hat\theta)}^2 = 0			\\
+											&\iff A(\theta - \hat\theta) = 0 \text{\qquad or A est injective car son rang est plein}	\\
+											&\iff \theta = \hat\theta
+			\end{align*}
+			Ainsi $\hat\theta$ est unique si $A$ est de rang $p$.
+		\end{proof}
+
+		\begin{ex}[Régression linéaire]
+			On cherche $\theta_1$ et $\theta_2$ tels que :
+			$$
+				y = f(\theta) = \theta_1 + \theta_2 x
+			$$
+			
+			Avec la méthode des moindres carrés, on a :
+			$$
+				S(\theta) = \sum_{i=1}^n \left( y_i - f(x_i, \theta) \right)^2
+			$$
+			Le but est alors de chercher $\theta^*$ minimisant $S$ \ie :
+			$$
+				\theta^* = \arg \min_{\theta \in \R^p} S(\theta)
+			$$
+		\end{ex}
+
+
+		Nous allons voir ici l'application de la régression polynomiale sur un set de données. Nous avons le code suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdE 1-Regression_Polynomiale_CV.sce}
+			\caption{Régression Polynomiale}
+			\label{code-5-regPoly}
+		\end{listing}
+
+		Nous allons construire plusieurs polynomes $P_0$ à $P_{10}$ du degré $p=0$ ($y=C\in\R$) au degré $p=10$ sur les couples de données $(t,y)$. Ici nous allons faire une validation croisée avec 3 sets différents, nous effectuerons ensuite une moyenne des erreurs et des coefficients sur chaque set pour chaque polynome $P_p$ afin de choisir celui avec l'erreur minimale et qui collera donc le mieux aux données.
+
+		Pour chaque set, les coefficients des polynomes ($\theta_p$) sont calculés avec un set d'apprentissage $T$ par la méthode de Gauss. On calcule ensuite $y_\text{Poly}$ pour chaque polynome sur l'ensemble des données pour estimer l'erreur sur le set de validation.
+
+		Nous obtenus les résultats suivants :
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdE\img 1-Regression_Polynomiale_CV.eps}
+			\caption{Résultats de la Régression Polynomiale}
+			\label{img-5-regPoly}
+		\end{figure}
+
+		Le modèle le plus approprié serait alors :
+		$$
+			P_4(x) = 1.599 -2.521 x^1 -0.060 x^2 -1.825 x^3 + 0.266 x^4
+		$$
+		Cependant on remarque qu'il y a relativement peu d'écart entre $P_3$, $P_4$ et $P_5$, les trois sont donc acceptables mais nous préfèrons $P_4$.
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth, trim=5cm 3cm 5cm 3cm, clip]{\tdE\img 1-Modele_Optimal_P4.eps}
+			\caption{Polynome Optimal $P_4$}
+			\label{img-5-modeleOptimalReg}
+		\end{figure}
+
+
+
+	\subsection{Régression polynomiale d'un cercle}
+
+		Un cas particulier de l'utilisation de la régression polynomiale est si la fonction recherchée est celle d'un cercle.
+		On cherche alors à minimiser la distance  :
+		\begin{equation}
+			\label{eq-5-dcercle}
+			d(a,b,R) = \sum_{i=1}^n \left( (x_i - a)^2 + (y_i - b)^2 -R^2 \right)^2 = \norm{r}^2
+		\end{equation}
+
+		Cependant cette forme n'est pas linéaire. On pose alors :
+		\begin{align*}
+			r_i &= R^2 - a^2 - b^2 + 2ax-i + 2by-i - (x_i^2 + y_i^2) \\
+				&= 	\begin{pmatrix}
+						2x_i & 2y_i & 1
+					\end{pmatrix}
+					\begin{pmatrix}
+						a \\
+						b \\
+						R^2 -a^2 - b^2
+					\end{pmatrix}
+					- (x_i^2 + y_i^2)
+		\end{align*}
+		Cette forme est linéaire : $\theta = \begin{pmatrix} a & b & R^2 -a^2 - b^2 \end{pmatrix}^T$
+
+		Ainsi on pose :
+		$$
+			A = \begin{pmatrix}
+					2x_1 & 2y_1 & 1	\\
+					2x_2 & 2y_2 & 1	\\
+					\vdots & \vdots & \vdots \\
+					2x_n & 2y_n & 1	\\
+				\end{pmatrix}
+			\qquad\text{ et }\qquad
+			z = \begin{pmatrix}
+					x_1^2 + y_1^2 \\
+					x_2^2 + y_2^2 \\
+					\vdots \\
+					x_n^2 + y_n^2 \\
+				\end{pmatrix}
+		$$
+		Et on obtient le problème linéaire 
+		\begin{equation}
+			\label{eq-5-cercleS}
+			S(\theta) = d(a,b,R) = \norm{A\theta - z}^2 = \norm{r(\theta)}^2
+		\end{equation}
+		
+
+		Effectuons cette régression avec le code suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdE 1.1-Regression_Cercle.sce}
+			\caption{Régression d'un cercle}
+			\label{code-5-regCercle}
+		\end{listing}
+
+		On construit d'abord un cercle bruité qui nous servira de données 'expérimentales'. On résout ensuite le problème de moindre carré linéaire \eqref{code-5-regCercle}. On obtient le résultat suivant :
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.6\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdE\img 1a-Regression_Cercle.eps}
+			\caption{Régression d'un cercle}
+			\label{img-5-regCercle}
+		\end{figure}
+
+		On obtient le cercle de centre $(a; b) = (1.498701; 1.496565)$ et de rayon $R=0.9999299$. On est donc très proche de la solution malgré le bruit, témoignant ainsi de l'efficacité de la méthode.
+
+
+\section{Problèmes non-linéaires}
+
+	\subsection{Erreurs possibles}
+		Prenons comme example le modèle non-linéaire suivant :
+		$$
+			y = f(x,\theta) = e^{\theta_0 + \theta_1 x}
+		$$
+
+		On pourrait penser qu'utiliser le logarithme permettrait de se ramener au problème linéaire :
+		\begin{equation}
+			\label{eq-5-logTrickS}
+			S_{log} = \sum_{i=1}^n \left( \ln y_i - (\theta_0 + \theta_1 x) \right)^2
+		\end{equation}
+		Cependant cela n'est pas correct car si $y_i - f(x_i, \theta)$ a une distribution normale, ce n'est pas le cas pour $\log y_i - \log f(x_i, \theta)$.
+
+		On pourrait aussi essayer de calculer le gradient de $S$ et l'annuler avec la méthode de Newton mais il faudrait calculer la jacobienne de $r = y_i - f(x, \theta) - y$ et cela n'assurerait pas un minimum mais donnerait peut-être un maximum ou un point selle.
+
+		Une solution viable est la suivante, on pose le développement limité de $\theta$ en $\theta_k$ :
+		$$
+			r(\theta) = r(\theta_k) + J_r(\theta)(\theta - \theta_k) + \norm{\theta - \theta_k}\epsilon(\theta - \theta_k)
+		$$
+		Ainsi, trouver $\theta_{k+1}$ minimisant $S_k(\theta) = \norm{r(\theta_k) +J_r(\theta_k)(\theta -\theta_k) }^2$ 
+		est un problème des moindres carrés linéaires que l'on peut résoudre avec la méthode de Newton : .
+
+
+		Ainsi pour résoudre des problèmes de moindre carré non-linéaires nous avons les méthodes suivantes, qui sont aussi valables pour dans le cas linéaire mais plus lourdes.
+
+
+	\subsection{Méthode du gradient}
+
+		% TODO : méthode descente, point de descente, conditions
+		% Une condition nécessaire pour que $\hat x$ soit un minimum local de $f$est que le gradient de $f$ en ce point s'annule : $\grad f(\hat x) = 0$
+		% Direction trouvée => choix du pas par optimisation d'une fonction à 1 var
+
+		La méthode du gradient est une méthode de descente : on choisit une direction $d_k = -\grad f(x_k)$ et un pas $p_k$ tel que $x_{k+1} = x_k + p_k\times d_k$ 'descende' par rapport à $x_k$, c'est-à-dire $f(x_{k+1})<f(x_k)$.
+
+		Concernant le pas, on peut choisir un pas $p_k$ constant ou bien variable selon $x_k$.
+		% TODO : développer sur les formes quadratiques
+
+		Un pas constant pose divers problèmes : s'il est mal choisi la méthode converge très lentement (pas trop petit) ou bien diverge (trop grand). En revanche nous pouvons pour chaque itération calculer un pas optimal.
+
+		\begin{algorithm}[H]
+		\DontPrintSemicolon
+		\caption{Méthode du gradient}
+			\KwData{$x_0 \in \R^n$ donné}
+			\KwResult{$\hat x \in \R^n$ minimum local de $f$ approchée à $\epsilon$ près}
+			\While{($\norm{f(x_k)}>\epsilon$ et $J_f(x_k)$ inversible)}
+			{
+				$x_{k+1} = x_k - \rho_k \times \grad f(x_k)$\;
+			}
+		\end{algorithm}
+	
+
+		% Pour l'implémenter dans Scilab, nous avons besoin de la Jacobienne de $f$, on peut aussi utiliser .. pour l'approcher.
+
+		On a l'implémentation Scilab suivante :
+		\begin{listing}[H]
+			\scicode{\tdE 2-Methode_Gradient.sce}
+			\caption{Méthode du Gradient}
+			\label{code-5-methGrad}
+		\end{listing}
+
+		Nous allons utiliser cette méthode sur la forme quadratique suivante :
+		\begin{equation}
+			\label{eq-5-formeQuad}
+			f(x) = \frac{1}{2} x^T A x - b^T x
+		\end{equation}
+		avec $A$ une matrice symétrique définie positive. On choisit :
+		$$
+			A = \begin{pmatrix}
+				2	&	-1	\\
+				-1	&	2	
+			\end{pmatrix}
+			\qquad
+			b = \begin{pmatrix}
+				1	\\
+				1
+			\end{pmatrix}
+		$$
+
+		\begin{listing}[H]
+			\scicode{\tdE 2.1-Methode_Gradient_Quadratique.sce}
+			\caption{Méthode du Gradient pour une fonction quadratique}
+			\label{code-5-methGradQuad}
+		\end{listing}
+
+		Nous choissisons d'abord un pas fixe $p = 0.2$
+		L'algorithme converge alors en $79$ itérations.
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.4\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdE\img 2a-Gradient_Quad_Pas02.eps}
+			\caption{Méthode du Gradient pour une forme quadratique avec un pas fixe}
+			\label{img-5-methGradQuadFixe}
+		\end{figure}
+
+		Dans le cas de $f$ sous forme quadratique, le pas optimal est le suivant :
+		% Démo
+		\begin{equation}
+			\label{eq-5-pasOptimal}
+			p_k = \frac{\norm{\grad f}^2}{{\grad f}' \times A \times \grad f}
+		\end{equation}
+
+		Avec ce pas optimal, on s'aperçoit que la convergence est plus rapide avec désormais $18$ itérations.
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.4\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdE\img 2a-Gradient_Quad_Opti.eps}
+			\caption{Méthode du Gradient pour une forme quadratique avec un pas optimal}
+			\label{img-5-methGradQuadOpti}
+		\end{figure}
+
+		Cependant cette méthode a des limites. Prenons la fonction de Rosenbrock :
+		\begin{equation}
+			\label{eq-5-fRosenbrock}
+			f(x,y) = (1-x)^2 + 100(y-x^2)^2;
+		\end{equation}
+
+		Cette fonction particulière est souvent utilisée pour mettre à l'épreuve les algorithmes d'optimisation.
+		On s'aperçoit facilement qu'elle admet un minimum global en $(1,1)$.
+
+		Nous allons appliquer la méthode du gradient.
+		Concernant le pas optimal pour cette fonction, on utilise la méthode de la section dorée fournie par Stéphane Mottelet qui fonctionne quelque soit la fonction à minimiser.
+
+		\begin{listing}[H]
+			\scicode{\tdE 2.2-Methode_Gradient_Rosenbrock.sce}
+			\caption{Méthode du Gradient pour la fonction de Rosenbrock}
+			\label{code-5-methGradRosen}
+		\end{listing}
+				
+		Ici on ne trace pas les courbes iso-valeur à chaque itération mais l'allure de la surface (plus les couleurs tendent vers le bleu, plus la fonction est "basse").
+		
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.6\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdE\img 2b-Gradient_Rosenbrock.eps}
+			\caption{Méthode du Gradient sur la fonction de Rosenbrock}
+			\label{img-5-methGradRosen}
+		\end{figure}
+
+		Après $1000$ itérations, la solution n'a toujours pas convergé et on obtient un écart en norme de $0.2173970$ par rapport à la solution $(1,1)$.
+
+		On s'aperçoit que les itérations successives s'approche très lentement du minimum et restent bloquées dans une "vallée".
+		On trouve donc une limite à la méthode du gradient, nous avons alors d'autres méthodes plus efficaces.
+
+	\subsection{Méthode de Gauss-Newton}
+
+		L'idée de cette méthode est la suivante. On part de la méthode des moindre carré \eqref{eq-5-LSM} : $S(\theta) = \norm{r(\theta)}^2$ où nous cherchons à minimiser $S$. Effectuons le développement limité de $r(\theta)$ à l'itération $\theta_k$ :
+		$$
+			r(\theta) = r(\theta_k) + J_r(\theta_k)(\theta-\theta_k) + \norm{\theta-\theta_k} \epsilon(\theta-\theta_k)
+		$$
+		Ainsi il suffit de trouver $\theta_{k+1}$ minimisant :
+		$$
+			S_k(\theta) = \norm{r(\theta_k) + J_r(\theta_k) (\theta-\theta_k)}^2
+						= \norm{r_k(\theta)}^2
+		$$
+		qui est un problème de moindre carré linéaire.
+		On a donc :
+		\begin{align*}
+			\theta_{k+1} 
+						&= \theta_k - J_r(\theta_k)^{-1}  r(\theta_k)	\\
+						&= \theta_k - \left( J_r(\theta_k)^T J_r(\theta_k) \right)^{-1} J_r(\theta_k)^T r(\theta_k)	\\
+						&= \theta_k - \frac{1}{2} \left( J_r(\theta_k)^T J_r(\theta_k)  \right)^{-1} \grad S(\theta_k)
+		\end{align*}
+
+		Le problème est quand le rang de la jacobienne en $\theta_k$ est dégénéré. Pour remédier à cela, on empêche que $\theta_{k+1}$ soit trop éloigné de $\theta_k$
+		La méthode suivante permet d'éviter ce problème.
+
+	\subsection{Méthode de Levenberg-Marquardt}
+
+		Nous avons la méthode de Levenberg-Marquardt :
+		\begin{equation}
+			\label{eq-5-levenbergMarquardt}
+			\theta_{k+1} = \theta_k - \frac{1}{2}\left( J_r(\theta_k)^T J_r(\theta_k) + \lambda I \right)^{-1} \grad S(\theta_k)			
+		\end{equation}
+		On peut choisir de régler cette méthode entre :
+		\begin{itemize}
+			\item la rapidité quand $\lambda \to 0$ : on se rapproche de la méthode de Gauss-Newton.
+			\item la sureté $\lambda \to \infty$ : on est plus proche de la méthode du gradient.
+		\end{itemize}
+
+		Scilab implémente aussi l'outil \code{lsqrsolve} qui utilise cette méthode pour résoudre un problème non-linéaire au sens des moindres carrés. 
+
+		Implémentons la sous Scilab de la manière suivante :
+
+		\begin{listing}[H]
+			\scicode{\tdE 3-Methode_LM.sce}
+			\caption{Méthode de Levenberg-Marquardt}
+			\label{code-5-methLM}
+		\end{listing}
+
+		Testons la sur la fonction de Rosenbrock \eqref{eq-5-fRosenbrock}.
+		On a le code suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdE 3.1-Methode_LM_Rosenbrock.sce}
+			\caption{Méthode de Levenberg-Marquardt pour la fonction de Rosenbrock}
+			\label{code-5-methLMRosen}
+		\end{listing}
+
+		On applique l'algorithme pour plusieurs valeur de $\lambda$ afin de voir l'impact de ce paramètre sur la vitesse de convergence de la méthode.
+		On obtient les résultats suivants :
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth, trim=1cm 1cm 1cm 1cm, clip]{\tdE\img 3-LM_4_lambda.eps}
+			\caption{Méthode de Levenberg-Marquardt avec différentes valeurs de $\lambda$}
+			\label{img-5-LMRosen4lambda}
+		\end{figure}
+
+		On remarque bien que plus $\lambda$ est petit, plus la convergence est rapide, allant même jusqu'à atteindre le minimum de la fonction de Rosenbrock en $3$ itérations ! Cette méthode est donc bien plus efficace que celle du gradient.	
+

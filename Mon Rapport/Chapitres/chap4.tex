@@ -1,0 +1,680 @@
+\chapter{Valeurs propres}
+\label{ch-4}
+
+% \section{Introduction}
+	Dans ce chapitre, nous verrons comment étendre la notion de valeurs propres à des matrices rectangulaire dans la partie \ref{ch-4-SVD} mais aussi comment calculer un classement des noeuds les plus importants d'un graphe dans la partie \ref{ch-4-PageRank}.
+
+\section{Décomposition en Valeurs Singulières (SVD)}
+\label{ch-4-SVD}
+
+	\subsection{Méthode SVD}
+		SVD signifie \emph{Singular Value Decomposition}, il s'agit d'une méthode de factorisation de matrices rectangulaires.
+
+		On connaît déjà la décomposition de matrices carrées $A\in\M_{nn}$ :
+		\begin{itemize}
+			\item Si $A$ est diagonalisable alors il existe $P$ inversible et $D$ diagonale contenant les valeurs propres de $A$ tels que : $A = PDP^{-1}$.
+			\item De plus si $A$ est symétrique alors $P$ est orthogonale et $A=PDP^\top$.
+			\item En revanche si $A$ n'est pas diagonalisable, on peut la trigonaliser avec $T$ une matrice triangulaire telle que $A=PTP^{-1}$.
+		\end{itemize}
+
+		L'idée de la SVD est de permettre de factoriser les matrices rectangulaires en étendant la notion de valeurs propres.
+
+		\begin{theoreme}
+			\label{th-4-svd}
+			On suppose $m \geq n$.
+			Pour toute matrice $A \in \M_{mn}$, il existe $U \in \M_{mm}$ et $V \in \M_{nn}$ et $\Sigma \in \M_{mn}$ de la forme
+			$$
+				\Sigma = \begin{pmatrix}
+							\sigma_1 & 0 & ... & 0			\\
+							0 & \sigma_2 & \ddots & \vdots	\\
+							\vdots & \ddots & \ddots & 0	\\
+							0 & ... & 0 & \sigma_n			\\
+							0 & \hdotsfor{2} & 0			\\
+							\vdots & \hdotsfor{2} & \vdots 	\\
+							0 & \hdotsfor{2} & 0
+						\end{pmatrix}
+			$$ telle que les $\sigma_i$ sont positifs et triés par ordre décroissant : $\sigma_1 \geq \sigma_2 \geq ... \geq \sigma_n \geq 0$.
+			On a alors : $A = U\Sigma V^T$.
+		\end{theoreme}
+
+		\begin{preuve}
+			$AA^T$ et $A^T A$ sont des matrices symétriques et elles admettent donc les décompositions :
+			\begin{align*}
+				A^T A &= VD_1V^T \in \M_n \\
+				A A^T &= UD_2U^T \in \M_m
+			\end{align*}
+			% TODO Revérifier
+			On a :
+			\begin{align*}
+				A^T A
+					&= V \Sigma^T U^T U \Sigma V^T 	\\
+					&= V \Sigma^T \Sigma V^T		\\
+					&= V D_1^2 V^T
+			\end{align*}
+
+			Par identification les $\sigma_i^2$ sont les valeurs propres de $A^T A$ et $V$ est la matrice de passage associée à $A^T A$.
+			De même $U$ est celle associée à $A A^T$.
+			% Ainsi $\pm\sigma_i$ sont les valeurs propres de A
+			Ainsi on a $A = U\Sigma V^T$.
+		\end{preuve}
+
+		Nous avons donc :
+		\begin{equation}
+			\label{eq-4-SVD}
+			A = U\Sigma V^T \iff AV = U\Sigma
+		\end{equation}
+
+		Notons $V=[\vec v_1 ... \vec v_n]$ et $U=[\vec u_1 ... \vec u_m]$.
+		On a alors :
+		\begin{equation}
+			\label{eq-4-vpSVD}
+			A \vec v_i = \sigma_i \vec u_i
+		\end{equation}
+		Ce qui ressemble fortement aux propriétés des valeurs propres des matrices carrées. 
+
+		Soit $r$ le nombre de valeurs singulières non-nulles : $\sigma_{r+1} = ... = \sigma_n = 0$.
+		On a la Décomposition en Valeurs Singulières suivantes :
+		\begin{equation}
+			\label{eq-4-decompoSVD}
+				\begin{cases}
+					A \vec v_i = \sigma_i \vec u_i		& 1 \leq i \leq r	\\
+					A \vec v_i = 0						& r+1 \leq i \leq n
+				\end{cases}
+		\end{equation}
+		$A$ est la somme de matrice de rang 1.
+
+		Nous avons donc : $\Image A = \vect{\vec v_1, ..., \vec v_r}$ et $\Ker A = \vect{\vec v_{r+1}, ..., \vec v_n}$ et $\rang A = r$.
+
+		Sous Scilab, on utilise l'outil \code{[U, S, V] = svd(A)}. En comparaison, \code{[vp, V] = spec(S)} donne les valeurs propres $vp$ d'une matrice carré et leur vecteurs propres associés $V$.
+
+	\subsection{Compression d'image}
+
+		Une des applications possibles de la SVD est de compresser des images. L'idée est de supprimer des valeurs singulières négligeables afin de réduire la taille de la factorisation.
+		Une image en noir et blanc de résolution $m\times n$ pixels peut être vue comme une matrice $A\in\M_{mn}$ où $a_{ij}$ correspond au niveaux de gris du pixel.
+
+		A partir de la décomposition en valeurs singulières \eqref{eq-4-decompoSVD}, nous avons :
+		$$
+			A = \sum_{i=1}^r \sigma_i u_i v_i^T
+		$$
+
+		Définissons la matrice compressée à partir de la $(k+1)$-ième valeur singulière $A_k$ telle que :
+		\begin{equation}
+			\label{eq-4-Ak}
+			A_k =  \sum_{i=1}^k \sigma_i u_i v_i^T 
+		\end{equation}
+		On remarque que $A_r = A$.
+
+		On a l'écart entre l'image originale $A$ et la version compressée $A_k$:
+		\begin{equation}
+			\label{eq-4-ecartAk}
+			\norm{A-A_k}_F^2 = \sum_{i=k+1}^m \sigma_i^2
+		\end{equation}
+		où $\norm{.}_F$ est la \textbf{norme de Frobenius} :
+		$$
+			B = (b_{ij}) \to \norm{B}_F^2 = \sum b_{ij}^2
+		$$
+		Sous Scilab nous utiliserons : \code{norm(A, 'fro')}.
+
+		\medskip
+
+		% Dans le cas de la compression d'images en noir et blanc, on remarque que l'on n'a pas besoin de tous les $\sigma_i$ car certains sont quasiment nuls.
+		Pour choisir les valeurs singulières négligeables, nous définissons un seuil $\epsilon > 0$ et considérons nuls les $\sigma_i$ dont la valeur absolue est inférieure au seuil choisi avec $i>k$. On remplace alors la matrice initiale $A$ par celle compressée $A_k$ définit en \eqref{eq-4-Ak}.
+
+		Au départ, la matrice $A$ occupe $m\times n$ cases mémoire. Après compression, il faut stocker $2k$ vecteurs $u_i$ et $v_i$ soit $k(m +n)$ espaces mémoires et les $k$ valeurs singulières considérées comme intéressantes $\sigma_i$ ($1 \leq i \leq k$). Au total, on passe à $k(m+n+1)$ cases mémoires occupées après compression. Comme $k<<m$, la compression est intéressante.
+
+		\medskip
+
+		Nous allons utiliser cette méthode pour compresser l'image de Lena, une photographie très utilisée en traitement d'image pour des raisons historiques (des scientifiques pressés et désireux d'utiliser une nouvelle image d'essai ont trouvé cette image dans un magazine \emph{Playboy}).
+
+		On a l'implémentation suivante :
+		\begin{listing}[H]
+			\scicode{\tdD 1-Compression.sce}
+			\caption{Compression par SVD}
+			\label{code-4-compression}
+		\end{listing}
+
+		Après avoir effectué la SVD sur la matrice de l'image, on va choisir $k_1$ et $k_2$ tel que $\sigma_{k_1} > \code{eps}\times\sigma_1$ et $\sigma_{k_1+1} < \code{eps}\times\sigma_1$ avec $\code{eps} = 0.005$ et $k_2 = 50$.
+
+		On obtient les matrices d'images compressées $A_{k_1}$ et $A_{k_2}$ suivantes :
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth, trim=1cm .6cm 1cm .6cm, clip]{\tdD\img 1-Lena.png}
+			\caption{Résultats de la compression}
+			\label{img-3-compressionLena}
+		\end{figure}
+
+		On ne remarque que peu de différences entre la photo originale et celle compressée avec $k_1$ mais ce n'est pas le cas pour la photo $k_2$.
+
+		Concernant la taille prise et la compression, on a :
+		\begin{table}[H]
+			\centering
+			\begin{tabular}{|c|c|r|c|}
+				\hline
+				Photo					& \multicolumn{2}{c|}{Taille occupée}	& Compression\footnotemark[1]								\\	\hline\hline
+				Originale				& 	$n\times n$		& 262144 valeurs	& $1- \frac{T_\text{comp}}{T_\text{orig}} $	\\	\hline
+				Compressée $k_1 = 101$	& 	$k_1(n+n+1)$	& 103525 valeurs	& $60.51 \%$								\\	\hline
+				Compressée $k_2 = 50$	& 	$k_2(n+n+1)$	& 51250 valeurs		& $80.45 \%$				 				\\	\hline
+			\end{tabular}
+			\caption{Résultats de la compression des images}
+			\label{tb-4-tailleImages}
+		\end{table}
+\footnotetext[1]{{Ici nous définissons le taux de compression tel que une image compressée à un taux $t$ occupe $t$ \% de la taille originelle}}
+
+		On conclut ainsi sur l'utilité de la compression SVD : avec la compression $k_1$ on réduit la taille de l'image par plus de la moitié pour un résultat quasiment semblable.
+		D'autres techniques de compression existent, la plus connue étant la compression JPEG qui utilise des méthodes plus complexes et un sous-échantillonage de l'image.
+
+	\subsection{Débruitage}
+
+		Souvent en télécommunication, les signaux transmis sont légèrement bruités, la SVD permet alors de restituer le signal d'origine.
+		Nous allons bruiter un signal de départ $u\in\R^{256}$ tel que $u(50)=u(52)=\frac{1}{4}, u(51)=\frac{1}{2}, u(150)=1$ et le reste à $0$.
+
+		On construit le premier signal bruité $v$ tel que chacune de ses composantes soient une moyenne pondéré des composantes voisines, on crée alors un effet de flou diffu. Soit $T$ la matrice de floutage définie par :
+		\begin{equation}
+			\label{eq-4-Tfloutage}
+			t_{ij} = C_i \times e^{-\frac{(i-j)^2}{10}}
+		\end{equation}
+		avec $C_i = \sum_{j=1}^{256}$ permettant de normaliser $T$ tel que la somme de chaque ligne soit égale à 1. 
+
+		Construisons le second signal bruité $w = v + \eta$ où $\eta$ correspond à une perturbation de $u$ par un bruit blanc de $\frac{1}{100}$ :
+		% \begin{equation}
+		% 	\label{eq-4-bruitageW}
+		% 	w = v + \eta = v + 
+		% \end{equation}
+
+		On pourrait naïvement essayer de débruiter le signal en $\tilde u	= T^{-1}w$ mais $T$ n'est pas inversible : $\abs{T}=0$.
+
+		En effet on appliquant la SVD \eqref{eq-4-decompoSVD} à $T$ on a en passant au déterminant :
+		$$
+			\det T = \det U \times \det \Sigma \times \det V
+		$$
+		$U$ et $V$ sont orthogonales donc leur déterminant est égale à $\pm1$ et $\Sigma$ diagonales donc on a :
+		$$
+			\det T = \pm \prod_{i=1}^{256} \sigma_i
+		$$
+		Comme certaines valeurs singulières sont très proches de $0$, elles impactent le déterminant de $T$. On va alors tronquer $T$ en $T_k$ dont le déterminant sera non nul. $T_k$ correspond ainsi à une version compressée mais inversible de $T$ grâce à la SVD.
+
+		On a ensuite la pseudo-inverse de $T$ :
+		\begin{equation}
+			\label{eq-4-pseudoInverse}
+			T_k^+ = \sum_{i=1}^k \frac{1}{\sigma_i}V_iU_i^T
+		\end{equation}
+		qui nous donne un signal débruité : $u_k = T_k^+ w$.
+		% TODO Pseudo inverse
+
+		L'outil Scilab permettant de calculer la pseudo-inverse d'une matrice est \code{pinv}.
+
+		Pour expérimenter cette technique sur l'image Léna, nous avons le code Scilab suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdD 1.2-Debruitage_Lena.sce}
+			\caption{Débruitage de Léna}
+			\label{code-4-debruitageLena}
+		\end{listing}
+
+		Nous floutons d'abord l'image avec $T$, puis nous la bruitons avec un bruit blanc $\eta$ pour obtenir l'image bruitée $A_b$. Nous créons la matrice restaurée $A_r$ de la manière décrite précedemment avec la pseudo-inverse de $T$. 
+		Nous obtenons les résultats suivants :
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth, trim=0.5cm 0.5cm 0.5cm 0.5cm, clip]{\tdD\img 1b-Debruitage_Lena.png}
+			\caption{Débruitage de Léna}
+			\label{img-4-debruitageLena}
+		\end{figure}
+
+		La version bruitée possède un écart de la norme de Frobenius supérieure à la version débruitée, on améliore bien la qualité de l'image après le processus de débruitage. De plus ce résultat ce voit visuellement.
+
+
+
+	\subsection{Approximation au sens des moindres carrés}
+
+		La SVD permet aussi d'approcher la solution d'un problème linéaire.
+		Nous verrons plus en détail d'autres techniques dans le chapitre 5 \eqref{ch-6}.
+		On cherche ici à résoudre $Ax=b$ avec $A\in\M_{mn}, x\in\M_{n1}, b\in\M_{m1}$. On a plusieurs cas :
+
+		\begin{itemize}
+			\item $b \in \Image A$ :
+				\begin{itemize}
+					\item $\Ker A = 0$		\quad $\to$ $A$ est inversible, l'unique solution est $x = A^{-1}b$
+					\item $\Ker A \neq 0$	\quad $\to$ il existe une infinité de solutions de la forme $x = x_\text{particulier} + x_\text{Ker}$ 
+					% TODO : 
+				\end{itemize}
+
+			\item $b \not\in \Image A$ : Dans ce cas là, qui arrive souvent en pratique, on doit approcher la valeur de $x$ par $x^*$
+		\end{itemize}
+
+		On cherche donc $x^*$ l'approximation de $x$ telle que $\norm{Ax^*-b}^2$ soit le plus petit possible.
+
+		% TODO : m ou n
+		Grâce à la SVD, on a : $A=U\Sigma V^T$
+		\begin{align*}
+			\norm{Ax-b}^2
+				&= \norm{U\Sigma V^T x-b}^2 = \norm{U\Sigma V^Tx - UU^Tb}^2		\\
+				&= \norm{U(\Sigma V^T x- U^Tb)}^2 = \norm{\Sigma V^T x - U^Tb}^2 \text{\qquad car $U$ est orthogonale donc il y a isométrie}
+		\end{align*}
+
+		On pose $z = V^T x$ et $c= U^Tb$.
+		On a alors : 
+		\begin{align*}
+			\norm{Ax-b}^2
+				&= \norm{\Sigma z - c}^2	\\
+				&= \norm{[\sigma_1 z_1 - c_1, ..., \sigma_r z_r -c_r, 0 - c_{r+1}, ..., 0 - c_m]^T}^2	\\
+				&= \sum_{i=1}^r (\sigma_i z_i - c_i)^2 + \sum_{i=r+1}^m c_i^2
+		\end{align*}
+
+		Il suffit donc de poser $\sigma_i z_i -c_i= 0 \forall i \in \{1, ..., r\}$
+
+		De cette façon, on a :
+		$$
+			z_i = \begin{cases}
+				\frac{c_i}{\sigma_i}	& i \in \{ 1, ..., r \} \\
+				\text{arbitraire}		& i \in \{ r+1, ..., m \}
+			\end{cases}
+		$$
+
+		On a enfin le résultat approché au sens des moindres carrés : $x^* = Vz$.
+		Cette méthode fonctionne aussi si $A$ est de rang plein et donne la solution unique.
+
+		% TODO Matrice pseudo inverse
+
+		% TODO : Approximation Scilab moindre carrés
+
+
+		Dans le Big Data, on a de très grandes matrices dont les colonnes correspondent à différentes caractéristiques. La SVD permet alors de dégager les $k$ caractéristiques les plus importantes par rapport aux valeurs singulières correspondantes : les $\sigma_i$ sont triés par ordre décroissant et donc les caractéristiques aussi.
+
+
+\section{Méthode de la puissance}
+
+	Soit $A \in \M_{nn}$ admettant $\lambda_1, ..., \lambda_n$ valeurs propres telles que $\abs{\lambda_1} > \abs{\lambda_2} \geq ... \geq \abs{\lambda_n}$. On appelle $\lambda_1$ la valeur propre dominante (\ref{def-4-vpDominante}).
+
+	Le but de cette méthode est d'approcher $\lambda_1$ et $v_1$ son vecteur propre associé.
+
+	On cherche alors à exprimer la suite : $x_k = Ax_{k-1}$ 
+	On part de $x_0 \in \R$ tel que $x_0 = \sum_{i=1}^n \alpha_i v_i$ avec $\alpha_i \neq 0 \forall i \in \{1,...,n\}$. $\{v_1, ..., v_n\}$ forme une base de vecteurs propres de A.
+
+	On a :
+	\begin{align*}	
+		x_1 &= Ax_0 = A \left( \sum_{i=1}^n \alpha_i v_i \right) = \sum_{i=1}^n \alpha_i Av_i = \sum_{i=1}^n \alpha_i \lambda_i v_i		\\
+		x_2 &= Ax_1 = A \left( \sum_{i=1}^n \alpha_i \lambda_i v_i \right) = \sum_{i=1}^n \alpha_i \lambda_i Av_i = \sum_{i=1}^n \alpha_i \lambda_i^2 v_i
+	\end{align*}
+	
+	Par récurrence on obtient :
+	\begin{align*}
+		x_k &= Ax_{k-1} = \sum_{i=1}^n \alpha_i \lambda_i^k v_i		\\
+			&= \alpha_1 \lambda_1^k v_1 + \sum_{i=2}^n \alpha_i \lambda_i^k v_i	\\
+			&= \alpha_1 \lambda_1^k v_1 \left( v_1 + \sum_{i=2}^n \frac{\alpha_i}{\alpha_1} \left( \frac{\lambda_i}{\lambda_1} \right)^k v_i  \right)
+	\end{align*}
+
+	Si $k>>1$, comme $\lambda_1 > \lambda_i \forall i >1$, alors $x_k \sim \lambda_1^k \alpha_1 v_1$. Ainsi $x_k$ a quasiment la même direction que $v_1$.
+
+	Cependant il y a un problème : si $\abs{\lambda_1}>1$ alors $\lambda_i^k$ diverge. Pour remédier à cela, nous allons normaliser les $x_i$ en $y_i$.
+
+	\begin{algorithm}[H]
+	\DontPrintSemicolon
+	\caption{Méthode de la puissance}
+		\KwData{
+			$y_0 \in \R^n$ donné\;
+			\Indp\Indp$k$ la puissance désirée
+		}
+		\KwResult{$y_k \in \R^n$}
+		\For{$i$ allant de $1$ à $k$}
+		{
+			$x_i = Ay_{i-1}$\;
+			$y_i = \frac{x_k}{\norm{x_k}}$\;
+		}
+	\end{algorithm}
+
+	Enfin nous povons récupérer la valeur propre dominante avec cette méthode :
+	$$
+		y_n^T A x_n = \scal{x_n}{Ax_n} = \scal{\pm v_1, \pm Ac_1}
+		\lambda_1^k = y_k^T A y_k
+	$$
+	% TODO : ^^ vv Correct ?
+	On peut montrer que :
+	$$
+		\abs{\lambda^k - \lambda_1} \leq C \left( \frac{\lambda_2}{\lambda_1} \right)^k
+	$$
+
+	Le code suivant est l'implémentation de cette méthode sous Scilab :
+
+	\begin{listing}[H]
+		\scicode{\tdD 2-Methode_Puissance.sce}
+		\caption{Méthode de la puissance}
+		\label{code-4-methodePuissance}
+	\end{listing}
+
+	Testons cette méthode sur la matrice suivante :
+	\begin{equation}
+		A = \begin{pmatrix}
+				0.5172	& 0.5473	& -1.224	& 0.8012 	\\
+				0.5473	& 1.388		& 1.353		& -1.112 	\\
+				-1.224	& 1.353		& 0.03642	& 2.893 	\\
+				0.8012	& -1.112	& 2.893		& 0.05827
+		\end{pmatrix}
+	\end{equation}
+
+	Nous utilisons de code suivant pour tester la méthode \ref{code-4-methodePuissance} :
+
+	\begin{listing}[H]
+		\scicode{\tdD 2.1-Puissance.sce}
+		\caption{Test de la méthode de la puissance}
+		\label{code-4-testPuissance}
+	\end{listing}
+
+	On obtient la valeur propre dominante $\lambda = -3.9956707$.
+
+	Grâce à \code{spec(A)}, nous obtenons les valeurs propres de la matrice :
+	$$
+		-3.9956707 		\hfill
+		1.0005201		\hfill
+		1.9927457		\hfill
+		3.0022949		
+	$$
+	On remarque que $\lambda$ est bien la valeur propre de valeur absolue la plus grande, elle est bien dominante.
+
+\section{Théorème de Perron-Frobenius}
+
+	Soit $A \in \M_{nn}$.
+	\begin{definition}
+		\label{def-4-matPositive}
+		Si $\forall (i,j) a_{ij} \geq 0 $ alors la matrice $A$ est dite positive et on note $A\geq 0$.
+		Respectivement, si l'inégalité est stricte, la matrice $A>0$ est strictement positive.
+	\end{definition}
+
+	\begin{definition}
+		\label{def-4-vpDominante}
+		Une valeur propre $\lambda^*$ est dite dominante si $\forall \lambda \neq \lambda^* :\quad \abs{\lambda^*} > \abs{\lambda}$
+	\end{definition}
+
+	\begin{definition}
+		\label{def-4-matPrimitive}
+		Une matrice $A$ est dite primitive si elle est positive et si $\exists k \in \N \tq A^k > 0$.
+	\end{definition}
+
+	\begin{definition}
+		\label{def-4-matIrreductible}
+		Une matrice $A$ est dite irréductible si $\forall(i,j) \exists k \in \N \tq (A^k)_{ij} > 0$.
+	\end{definition}
+		
+	Une matrice primitive est irréductible, cependant la réciproque est fausse. 
+	% TODO Contre exemple
+
+	\begin{theoreme}[Théorème de Perron]
+		\label{th-4-perron}
+		Si $A$ est une matrice primitive, alors $\lambda^*$ est une valeur propre simple et dominante et il existe un unique vecteur $x \in\M_{n1}$ positif et normalisé\footnote{On définit $x$ comme normalisé si la somme de ses composantes est égale à 1 : $\sum_{i=1}^n x_i = 1$} tel que $Ax = \lambda^*x$.
+	\end{theoreme}
+
+	\begin{theoreme}[Théorème de Frobenius]
+		\label{th-4-frobenius}
+		Si $A$ est une matrice irréductible, alors $\lambda^*$ est une valeur propre simple et il existe un unique vecteur $x \in\M_{n1}$ positif et normalisé tel que $Ax = \lambda^*x$.
+	\end{theoreme}
+
+	La seule différence entre ces deux théorèmes est que la valeur propre n'est pas dominante si la matrice n'est que irréductible dans le cas du théorème de Frobenius \eqref{th-4-frobenius}.
+
+	% TODO : th Perron-Frobenius
+	% TODO : mat stochastique
+	% TODO : chaine Markov
+
+\section{PageRank}
+\label{ch-4-PageRank}
+
+		    
+		L'algorithme \emph{PageRank} a été conçu par Larry Page et Serguey Brin, les fondateurs de Google, dans le cadre d'une thèse à Stanford en 1996.
+		L'idée principale est que la popularité et l'importance d'une page web se mesure avec les liens qui lui font référence.
+		D'autres paramètres rentrent bien sûr en compte et nous les verrons au fur et à mesure de l'élabolartion de l'algorithme.
+
+		Cette idée peut être appliquée sur n'importe quel graphe orienté tel qu'un réseau ferroviaire ou bien un ensemble d'articles scientifques se faisant référence entre eux; dans chaque cas on mesure l'importance de chaque sommet.
+
+	\subsection{Construction de la méthode}
+		    
+		% Problèmes : impasses x, cycles x, fermes à réf
+		Nous allons ici détaillé la construction de l'algorithme \emph{PageRank} dans le cas initial d'un réseau de pages web.
+		On part d'un ensemble de $n$ pages $P_i$ ($i \in I = \{1,...,n\}$) reliées entre elles ou non selon la matrice d'adjacence $A \in \M_{nn}$ :
+		$$
+			a_{ij} = \begin{cases}
+				1	& \text{si $j$ fait référence à $i$ (on a l'arc $P_j \to P_i$)}	\\
+				0	& \text{sinon}			
+			\end{cases}
+		$$
+		Les colonnes $A_j$ présentent donc les successeurs de $P_j$. 
+
+		% TODO : Pj -> Pi ?????????
+
+		En modélisant l'action d'un internaute lambda sur ce réseau, le but est de prédire quelles seront les pages les plus fréquentées et ainsi de les classer.
+		On définit $E_k^i$ l'événement "\emph{être à la page $P_i$ après $k$ clics}" de probabilité $p_k^i = \proba(E_k^i)$. On suppose que le choix de la page de départ est équiprobable : $p_0^i = \frac{1}{n} \quad \forall i \in I$.
+		A chaque itération $k$, l'internaute change de page.
+
+		D'après la formule des probabilités totales, on a $\forall i \in I, \forall k \in \N$:
+		$$
+			p_{k+1}^i = \sum_{j\in I} \proba(E_{k+1}^i|E_k^j) \times \proba(E_k^j)
+		$$
+
+		On note le vecteur de probabilité $U_k\in\M_{n1}$:
+		\begin{equation}
+			\label{eq-4-u}
+			U_k = \begin{pmatrix}
+				p_k^1	\\			
+				\vdots	\\			
+				p_k^n		
+			\end{pmatrix}		
+		\end{equation}
+		qui correspond à la probabilité d'être sur chaque page à l'itération $k$.
+
+		On pose la matrice de transfert d'importance relative $H\in\M_{nn}$ :
+		\begin{equation}
+			\label{eq-4-h}
+			H_i = \begin{cases}
+				A_i \times \frac{1}{\displaystyle \sum_{i\in I} a_{ij}}		& \text{si } A_i \neq 0	\\
+				\frac{1}{n} \times e										& \text{sinon}
+			\end{cases}
+		\end{equation}
+		Où $e \in \M_{n1}$ est le vecteur rempli de $1$.
+
+		Dans le cas où la page $P_i$ n'a aucun lien qui pointe vers elle, $A_i$ est nulle.
+		Cependant nous voulons que la somme de chaque colonne $H_i$ soit égale à 1 et éviter les bloquage sur des pages sans successeurs, c'est pourquoi nous donnons $h_{ij} = \frac{1}{n}$ quand $A_i = 0$.
+		Dans le cas contraire, on a $h_{ij} = \proba(E_{k+1}^i|E_k^j)$
+		
+		On a donc la chaîne de Markov suivante :
+		\begin{equation}
+			\label{eq-4-markov}
+			\begin{cases}
+				U_{k+1} = HU_k					\\
+				U_0 = \frac{1}{n}\times e
+			\end{cases}
+		\end{equation}
+		
+		% TODO : Chaîne de Markov
+
+		% TODO : vrai ?? vvv
+		L'importance des pages est alors indiquée par la convergence de la suite $U_k$ vers $r\in\R^n$.
+		Cependant si on s'arrête ici, on ne garantit pas la convergence dans le cas de circuits.
+
+		Pour palier à ce problème et mieux représenter l'attitude d'un internaute, on suppose qu'à n'importe quel moment ce dernier peut choisir de réinitialiser sa navigation, c'est-à-dire quitter la page courante et choisir n'importe quelle page. On note (1-$\alpha$) la probabilité d'un tel événement $R$. La probabilité de choisir n'importe quelle page après réinitialisation est équiprobable et de probabilité $\frac{1}{n}$.
+		
+		On a finalement la matrice Google :
+		\begin{equation}
+			\label{eq-4-g}
+			G = \alpha H + (1 - \alpha) \times \frac{1}{n}\times e e^T
+		\end{equation}
+
+		Google utilise $\alpha = 0.85$ : cela permet d'avoir un comportement sans trop de réinitialisations de la navigation mais permettant tout de même d'éviter les problèmes empêchant la convergence.
+
+		On pose la somme de la colonne $j$ : $c_j = \sum_{i\in I} a_{ij}$.
+		En résumant nous avons donc :
+		\begin{equation}
+			\label{eq-4-google}
+			g_{ij} = \begin{cases}
+				\alpha \frac{a_{ij}}{c_j} + (1-\alpha) \frac{1}{n}ee^\top	& \text{si } c_j \neq 0 \\
+				\frac{1}{n}													& \text{si } c_j = 0
+			\end{cases}
+		\end{equation}
+
+
+		La matrice Google $G$ est primitive car $G>0$ (ses composantes sont des probabilités). Elle est ainsi construite afin de remplir les conditions du théorème de Perron \eqref{th-4-perron}.
+
+		On a : $Ge = \sum_{i=1}^n \, \underline{G}_i = e$ et $e$ normalisé
+		Ainsi $\lambda^* = 1$ est la valeur propre dominante de $G$.
+
+
+		On a alors l'unique vecteur propre $r$ positif et normalisé associé à la valeur propre dominante $\lambda_1 = 1$ :
+		\begin{equation}
+			\label{eq-4-rank}
+			r = Gr
+		\end{equation}
+		L'importance des pages $r\in\M_{n1}$ est ainsi donnée par $r$.
+
+
+		On peut calculer le rank $r$ à partir de \eqref{eq-4-rank} avec la méthode du point fixe. Comme la matrice $G$ est énorme, il est grandement préférable de faire les opérations pour des matrices creuses. Ici nous utilison la méthode de la puissance vu en \ref{code-4-methodePuissance} sur $G$ pour récupérer le rank $R$.
+		Nous avons le code Scilab suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdD 3-Rank.sce}
+			\caption{Rank d'une matrice}
+			\label{code-4-Rank}
+		\end{listing}
+
+		Il suffit juste de créer la matrice en format csv et de la passer à la fonction pour récuperer le rank. Cette technique n'est pas adaptée pour de grandes matrices mais ici nous n'utiliserons que de petites matrices carrées de taille inférieure à 12.
+		Pour adapter cette fonction à de grandes matrices, il faudrait passer une matrice creuse construites préalablement.		
+		% C = full(sparse(fscanfMat(fileName)));
+
+
+	\subsection{Applications}
+
+		\subsubsection{PageRank d'un réseau de 8 pages}
+
+			Nous allons appliquer l'algorithme du \emph{PageRank} dans le réseau de pages suivant :
+
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=\linewidth]{\tdD\img 3-web1.png}
+				\caption{Réseau de 8 pages}
+				\label{img-4-web1}
+			\end{figure}
+
+			Nous avons la matrice d'adjacence $A$ suivante :
+			$$
+				A = \begin{pmatrix}
+					0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+					1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+					1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+					0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 \\
+					0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 \\
+					0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 \\
+					0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 \\
+					0 & 0 & 0 & 0 & 1 & 1 & 1 & 0
+				\end{pmatrix}
+			$$
+
+			Puis la matrice $H$ :
+			$$
+				H = \begin{pmatrix}
+					0 		& 0 		& 0 		& 0 		& 0 		& 0 		& 0 		& 0 	\\
+					1/2		& 0 		& 1/2 		& 0 		& 0 		& 0 		& 0 		& 0 	\\
+					1/2		& 0 		& 0 		& 0 		& 0 		& 0 		& 0 		& 0 	\\
+					0 		& 1 		& 1/2 		& 0 		& 0 		& 0 		& 0 		& 0 	\\
+					0 		& 0 		& 0 		& 1/2 		& 0 		& 0 		& 1/2		& 0 	\\
+					0 		& 0 		& 0 		& 1/2 		& 0 		& 0 		& 0 		& 1/2 	\\
+					0 		& 0 		& 0 		& 0 		& 1/2 		& 0 		& 0 		& 1/2 	\\
+					0 		& 0 		& 0 		& 0 		& 1/2 		& 1 		& 1/2 		& 0
+				\end{pmatrix}
+			$$
+			On a bien la somme de chaque colonne $H_i$ égale à 1 : $\sum_{i=1}^8 \, h_{ij} = 1, ~ \forall j$.
+
+			On obtient ici la matrice stochastique $G$ :
+			$$
+				G = 0.85 \times H + 0.15\times \frac{1}{8}
+			$$
+			
+			Appliquons l'algorithme \ref{code-4-Rank} avec le code suivant :
+
+			\begin{listing}[H]
+				\scicode{\tdD 3.1-PageRank.sce}
+				\caption{PageRank du réseau de 8 pages}
+				\label{code-4-PageRank8}
+			\end{listing}
+
+			Après tri du rank nous obtenons :
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{|r|l|}
+					\hline
+					Rank		& Page	\\	\hline
+					\hline
+					0.322208	& 8		\\	\hline
+					0.213505	& 7		\\	\hline
+					0.182237	& 6		\\	\hline
+					0.136039	& 5		\\	\hline
+					0.062469	& 4		\\	\hline
+					0.038074	& 2		\\	\hline
+					0.026719	& 3		\\	\hline
+					0.018750	& 1		\\	\hline
+				\end{tabular}
+				\caption{Rank du réseau de 8 pages}
+				\label{tb-4-rank8}
+			\end{table}
+
+			La page $P_8$ est donc la plus importante.
+
+		\subsubsection{Rank d'un réseau ferroviaire}
+
+
+			L'algorithme peut s'appliquer à n'importe quel réseau, y compris au réseau ferroviaire suivant :
+
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=.6\linewidth]{\tdD\img 3-villes.png}
+				\caption{Réseau ferroviaire entre 11 villes}
+				\label{img-4-villes}
+			\end{figure}
+
+			Nous avons la matrice d'adjacence $A$ suivante :
+			$$
+				A = \begin{pmatrix}
+					0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+					1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 \\
+					0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+					0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+					0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 \\
+					0 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 \\
+					0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 \\
+					0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 \\
+					0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+					0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 \\
+					0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0
+				\end{pmatrix}
+			$$
+			
+			Appliquons pareillement l'algorithme \ref{code-4-Rank} avec le code suivant :
+
+			\begin{listing}[H]
+				\scicode{\tdD 3.2-Villes.sce}
+				\caption{Rank du réseau ferroviaire}
+				\label{code-4-rankVilles}
+			\end{listing}
+
+			Après tri du rank nous obtenons :
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{|r|l|}
+					\hline
+					Rank		& Villes	\\	\hline
+					\hline
+					0.201485	&  2 - Milan		\\	\hline
+					0.129563	&  6 - Bergame		\\	\hline
+					0.112639	&  7 - Crémone		\\	\hline
+					0.106809	&  8 - Lecco		\\	\hline
+					0.101626	& 10 - Brescia		\\	\hline
+					0.099975	&  5 - Côme			\\	\hline
+					0.074094	&  4 - Lodi			\\	\hline
+					0.045551	& 11 - Mantoue		\\	\hline
+					0.043899	&  9 - Sondrio		\\	\hline
+					0.042180	&  1 - Varèse		\\	\hline
+					0.042180	&  3 - Pavie		\\	\hline
+				\end{tabular}
+				\caption{Rank du réseau de 8 pages}
+				\label{tb-4-rankVilles}
+			\end{table}
+
+			Sans surprise, Milan est la ville la plus importante du réseau.
+			Cet algorithme peut donc servir dans la prise de décision du nombre de trains passant sur chaque ligne par exemple.
+
+

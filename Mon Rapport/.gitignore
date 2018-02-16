@@ -1,0 +1,11 @@
+_minted-rapport/
+_minted-test-minted/
+*.aux
+*.loa
+*.lof
+*.log
+*.lol
+*.out
+*.synctex.gz
+*.thm
+*.toc

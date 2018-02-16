@@ -1,0 +1,894 @@
+\chapter{Fractales}
+\label{ch-2}
+
+% \section{Introduction}
+
+	Les fractales ont été définies par Benoit Mandelbrot en 1975 dans son oeuvre \emph{Les Objets Fractals}.
+	Ce sont des objets complexes que la géométrie traditionnelle peine à décrire. Le plus souvent, ce sont des figures qui se répètent à l'infini avec n'importe quel niveau de zoom : on parle d'autosimilarité à toutes les échelles.
+
+	Les fractales peuvent être appliquées à de nombreux domaine :
+	\begin{itemize}
+		\item en médecine avec la modélisation d'un poumon
+		\item la modélisation de structures de plantes comme le chou romanesco
+		\item en finance avec la prévision de krachs boursiers par la théorie multifractale
+		\item en urbanisme avec les murs antibruits
+		\item en géologie avec l'étude du relief
+		\item mais aussi dans les arts, par leur aspect intriguant et infini
+	\end{itemize}
+
+	Nous allons ici étudier comment générer des fractales, puis nous verrons quelques exemples.
+	% Mandelbrot : un objet qui continue à présenter une structure détaillée sur un grand éventail d'échelles
+	% irrégularité ?
+	% Comment construire des figures irrégulières (???) telles que des courbes entières non dérivables
+	% simuler l'écume des vagues
+	% G. Cantor (1845-1918)
+	% Van Koch (1870-1924)
+	% Sierpinski (???) (1882-1969)
+	% Weirstrass
+	% Mandelbrot (1920-2014)
+	% Au-delà de la géométrie euclidienne classique
+	% Paradoxe de l'infini
+
+\section{Outils}
+
+	\subsection{Distance et dimension de Hausdorff}
+		% Différence par rapport à la dimension topologique que l'on connait déjà.
+		% Dans le cas d'une fractale, sa dimension topologique est strictement inférieure à sa dimension de Hausdorff. (???)
+
+		On cherche ici à mesurer convenablement la distance entre deux compacts de $\R^2$.
+		On définit la distance entre un point $x$ et un compact $B$ par : $ d(x,B) = \min_{b\in B}{d(x,b)} $
+		Naïvement on pourrait définir la distance donc par : $d(A,B) = \max_{a\in A}{d(a,B)}$
+		Mais on a alors un problème car $d(A,B)\neq d(B,A)$.
+		Nous avons une solution :
+
+		\begin{definition}%[Distance de Hausdorff]
+			\label{def-2-distanceHausdorff}
+			On définit la distance de Hausdorff $d_H$ entre deux compacts $A$ et $ B$ par :
+			\begin{equation}
+				\label{eq-2-distanceHausdorff}
+				d_H(A,B) = \max \left( d(A,B), d(B,A) \right) = \max \left( \max_{a\in A}d(a,B) ;~ \max_{b\in B}d(b,A)  \right)
+			\end{equation}
+		\end{definition}
+			
+		\medskip
+
+		De plus, on définit la dimension de Hausdorff $d$ d'un compact $K \subset \R^2$ :
+
+		\begin{definition}[Dimension de Hausdorff]
+			\label{def-2-hausdorff}
+			On note $N(\epsilon)$ le nombre de carrés ou disques de longueur $\epsilon$ recouvrant un compact $K$, on a la dimension de Hausdorff de $K$ notée $\dim_H$ telle que :
+			\begin{equation}
+				\label{eq-2-dimHaussdorffEps}
+				\dim_H = \lim_{\epsilon\to 0} \frac{\ln{N(\epsilon)}}{\ln{\frac{1}{\epsilon}}}		
+			\end{equation}
+		\end{definition}
+
+		On peut aussi l'expliquer plus simplement.
+		On prend un élément d'un compact $K$ et on le réduit par d'un facteur $k$ (on a le rapport de réduction $r = \frac{1}{k}$), pour recouvrir le compact initial il faut $n$ réductions. On a donc $n\times k^d = 1$ d'où la dimension :
+		\begin{equation}
+			\label{eq-2-dimHaussdorff}
+			d = \frac{\ln n}{\ln k}
+		\end{equation}
+
+		\begin{ex}
+			Pour $\R$ : on prend un segment que l'on réduit de $k$, on a besoin de $n=k$ segments réduits.	\\
+			Pour $\R^2$ : on prend un carré que l'on réduit de $k$, on a besoin de $n=k^2$ carrés réduits.	\\
+			Pour $\R^3$ : on prend un cube que l'on réduit de $k$, on a besoin de $n=k^3$ cubes réduits.	\\
+			Par exemple si on réduit un cube d'un facteur $2$, il faut $8 = 2^3$ cubes réduits.
+		\end{ex}
+
+		% Elle est utilisée pour caractériser les fractales.
+		% TODO Développer
+
+	\subsection{Système de Fonctions Itérées (ISF)}
+		Les ISF sont des algorithmes qui permettent de construire des fractales de manière itérée, évitant ainsi les méthodes récursives. Avant de les définir plus précisément nous allons voir les transformations utilisées dans ces méthodes.
+
+		\medskip
+
+		Soit $u:\R^2\to\R^2$ une transformation linéaire du plan et soit $A$ la matrice associée à cette application.
+		Les transformations les plus courantes sont :
+
+		\begin{table}[H]
+			\centering
+			\begin{tabular}{lc}
+				l'homothétie de rapport $\lambda$ :
+				&	$A = \begin{pmatrix}
+						\lambda & 0 		\\
+						0 		& \lambda
+					\end{pmatrix}$
+				\\
+				\\
+				la rotation d'angle $\theta$ et de centre l'origine :
+				&	$A = R_\theta = \begin{pmatrix}
+						\cos\theta	& \sin\theta	\\
+						-\sin\theta	& \cos\theta
+					\end{pmatrix}$
+				\\
+				\\
+				la symétrie axiale par rapport à l'axe des ordonnée :
+				&	$A = S_{Ox} = \begin{pmatrix}
+						1 & 0	\\
+						0 & -1
+					\end{pmatrix}$
+				\\
+				\\
+				la combinaison de rotation $\theta$ et d'homothétie $\rho$:
+				&	$A = \begin{pmatrix}
+				% \label{eq-2-rotHomo}			
+						a & -b	\\
+						b & a
+					\end{pmatrix}$
+				\\
+				\multicolumn{2}{c}{
+					\smallskip
+					Où on a : \hfill
+					$
+						\rho = \sqrt{a^2 + b^2}
+							\hfill
+						\cos\theta = \frac{a}{\rho}
+							\hfill
+						\sin\theta = \frac{-b}{\rho}
+					$
+				} \\		
+			\end{tabular}
+			\caption{Transformations courantes}
+			\label{tb-2-transf}
+		\end{table}
+
+		% TODO : schéma
+
+
+		% =========================================================================
+
+			% \begin{itemize}
+			% 	\item l'homothétie de rapport $\lambda$ : \hfill
+			% 	$A = \begin{pmatrix}
+			% 		\lambda & 0 		\\
+			% 		0 		& \lambda
+			% 	\end{pmatrix}$
+
+			% 	\item la rotation d'angle $\theta$ et de centre l'origine : \hfill
+			% 	$A = R_\theta = \begin{pmatrix}
+			% 		\cos\theta	& \sin\theta	\\
+			% 		-\sin\theta	& \cos\theta
+			% 	\end{pmatrix}$
+
+			% 	\item la symétrie axiale par rapport à l'axe des ordonnée : \hfill
+			% 	$A = S_{Ox} = \begin{pmatrix}
+			% 		1 & 0	\\
+			% 		0 & -1
+			% 	\end{pmatrix}$
+
+			% 	\item la combinaison de rotation $\theta$ et d'homothétie $\rho$: \hfill
+			% 	$A = \begin{pmatrix}
+			% 		a & -b	\\
+			% 		b & a
+			% 	\end{pmatrix}$
+
+			% 	Où on a : \hfill
+			% 	$$
+			% 		\label{eq-2-rotHomo}			
+			% 		\rho = \sqrt{a^2 + b^2}
+			% 			\hfill
+			% 		\cos\theta = \frac{a}{\rho}
+			% 			\hfill
+			% 		\sin\theta = \frac{-b}{\rho}
+			% 	$$			
+			% \end{itemize}
+		% =========================================================================
+
+		En revanche, la translation par $t\in\R^2$ n'est pas linéaire car $u(0) = 0 + t \neq 0$. Il s'agit d'une transformation affine.
+		\begin{definition}[Transformation Affine]
+			\label{def-2-transfAffine}
+			Une transformation affine $T:\R^2\to\R^2$ d'un point $M(x;y)$ est la composition d'une transformation linéaire $A$ et d'une translation $t$ :
+			\begin{align}
+				\label{eq-2-transAffine}
+				T(M) &= AM + t = (ax + by +e,\,cx + dy + f)	\\
+				&= \begin{pmatrix}
+					a & b \\ c & d
+				\end{pmatrix}
+				\binom{x}{y} + \binom{e}{f}
+			\end{align}
+		\end{definition}
+
+		% TODO : Colinéarité
+
+		\medskip
+
+		\begin{definition}[Compact]
+			\label{def-2-compact}
+			Un compact de $\R^2$ est un sous-ensemble fermé et borné de $\R^2$
+		\end{definition}
+
+		\begin{definition}[Contraction]
+			\label{def-2-contraction}
+			Une transformation affine du plan est une contraction de facteur $r\in ]0;1[$ si l'image d'un segment est un segment de longueur inférieur (longueur initial $\times r$).
+		\end{definition}
+
+		\smallskip
+
+		\begin{definition}[Système de Fonctions Itérées]
+			\label{def-2-ifs}
+			Un Système de Fonctions Itérées (ISF) est une collection finie de $n$ transformation affines $T_i$.
+		\end{definition}
+
+		\begin{definition}[Attracteur]
+			\label{def-2-attracteur}
+			 L’attracteur d’un IFS de ${T_1,T_2,...,T_n}$ est l’unique compact $K\in\R^2$ tel que
+			 \begin{equation}
+			 	\label{eq-2-attracteur}
+			 	K = T(K) = \bigcup_{i=1}^n T_i(K) = T_1(K) \cup T_2(K) \cup ... \cup T_n(K)
+			 \end{equation}
+		\end{definition}
+
+		\medskip
+
+		On pose : $E_k$ le compact formé à l'itération $k$ d'un ISF à partir du compact de départ $E_0 \subset \R^2$ : $E_{k+1} = T_i(E_k)$.
+		On parle d'ISF aléatoire quand la transformation $T_i$ est choisie aléatoirement avec un probabilité $p_i$ parmi les $n$ transformations possibles. Il faut que $\sum_{i=1}^n p_1 = 1$. Ce type d'ISF converge de la même façon que la version déterministe.
+		% TODO : Jeu du chaos
+		% Le jeu du chaos décrit par Michael Barnsley, désigne
+
+		\begin{theoreme}[Théorème de Banach]
+			\label{th-2-convergenceISF}
+			Si $f: \R^2\to\R^2$	est une contraction de facteur $r \in ]0;1[ $ telle que
+			$$
+				d_H(f(A),f(B)) \leq r \times d_H(A,B)
+			$$
+			alors il existe un point fixe $K$ appelé attracteur tel que $K=f(K)$.
+		\end{theoreme}
+
+		Ce théorème nous permet alors de prouver la convergence des ISF.
+		La suite $\suite[k]{E}$ converge vers l'attracteur $K$ décrit en \eqref{eq-2-attracteur} si ses transformations $T_i$ sont contractantes selon la distance de Haussdorf vue en \ref{def-2-hausdorff}.
+
+		Comme tous les ISF que nous construirons par la suite n'auront que des transformations contractantes, alors ils convergeront vers leur point fixe qui correspond à leur fractale.
+
+
+		% TODO Utile ? ou Maths ?
+		% \bigskip
+		% \begin{theoreme}
+		% 	\begin{enumerate}
+		% 		\item $f : [a;b] \to [a;b]$ alors \quad $\exists! x^* \tq f(x^*)=x^*$
+		% 		\item Si $f$ est k-lipschitzienne alors \quad $\exists K \in ]0;1[ \tq \forall x,y :\quad \abs{f(x)-f(y)} \leq K\abs{x-y}$
+		% 	\end{enumerate}
+		% \end{theoreme}
+
+
+\section{Quelques fractales}
+
+	\subsection{Ensemble de Mandelbrot}
+
+		
+	
+		% Ici chaque pixel correspond à un c à tester
+		% Trouver Pi
+		% N(c) = nombre d'itérations avant que z_c >2
+		% c = 1/ + epsilon
+		% epsilon = .01 .001 ->
+		% N(c) -> Pi * 10^k ?
+		% Casper ??
+
+			% // On itére les complexes de tous les points : z(n+1) = zn^2 + z0 avec z0 = c
+			L'ensemble de Mandelbrot est sûrement l'une des fractales les plus connues et les plus étudiées. Elle a été découvert par Gaston Julia et Pierre Fatou, puis repris par Benoît Mandelbrot qui lui donnera son nom. 
+
+		\paragraph{Construction}
+
+			On définit l'ensemble de Mandelbrot $\mathbb{M}$ de la façon suivante :
+			un nombre complexe $c$ appartient à $\mathbb{M}$ si la suite \eqref{eq-2-mandelbrot} est bornée et donc ne diverge pas.
+			\begin{equation}
+				\label{eq-2-mandelbrot}
+				\begin{cases}
+					z_{n+1} = z_n^2 + c		\\
+					z_0 = 0
+				\end{cases}
+			\end{equation}
+			On considère que comme borne suffisante 2 : $\abs{z_n} < 2 ~\forall n\in\N$ car si $\abs{z_n}\geq 2$ alors $\abs{z_{n+1}}\geq 2z_n$ et la suite diverge. 
+
+			On a l'implémentation sous Scilab suivante :
+			\begin{listing}[H]
+				\scicode{\tdB 1-Mandelbrot.sce}
+				\caption{Ensemble de Mandelbrot}
+				\label{code-2-mandelbrot}
+			\end{listing}
+
+			On crée une grille de $800\times600$ pixels, et à chaque point $(x,y)$ on associe le complexe $c = x + iy$.
+			On va tester si chaque complexe correspondant ne diverge pas pour l'inclure dans l'ensemble de Mandelbrot.
+			On définit la matrice complexe \code{Z} qui correspond aux coordonnées complexes de chaque point et $\code{C}=Z_0$.
+			On itère ensuite chaque point dans $Z$ avec la fonction \eqref{eq-2-mandelbrot}.
+
+			La matrice \code{InMandelbrot} permet de savoir si les complexes restent bornés : on met 1 si le point correspond n'a pas divergé après les itérations, il appartient ainsi à l'ensemble de Mandelbrot; sinon on laisse à 0. On affiche ensuite les points à 1 et on obtient :
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=0.8\linewidth]{\tdB\img 1-Mandelbrot.png}
+				\caption{Ensemble de Mandelbrot}
+				\label{img-2-mandelbrot}
+			\end{figure}
+
+		\paragraph{Propriétés}
+			\begin{propShort}
+				L'ensemble de Mandelbrot a été démontré connexe.
+			\end{propShort}
+
+			On peut aussi retrouver les décimales de $\pi$ avec l'ensemble de Mandelbrot.
+			On note $N(z)$ le nombre d'itérations nécessaires avant que le point d'affixe $z$ ne diverge de l'ensemble de Mandelbrot.
+			Prenons la suite $z_i = \frac{1}{4} + 10^{-2i} ~\forall i \in \N^*$. On calcules $N(z_i)$ avec le programme suivant :
+
+			\begin{listing}[H]
+				\scicode{\tdB 1.1-Mandelbrot_Pi.sce}
+				\caption{Pi et Mandelbrot}
+				\label{code-2-piMandelbrot}
+			\end{listing}
+
+			On récupère les résultats suivants :
+
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{|c|l|l|}
+					\hline
+					$i$	& $z_i$				& $N(z_i)$	\\	\hline
+					\hline
+					$1$	& $0.26$			& $28$		\\	\hline
+					$2$	& $0.2501$			& $310$		\\	\hline
+					$3$	& $0.250001$		& $3138$	\\	\hline
+					$4$	& $0.25000001$		& $31412$	\\	\hline
+					$5$	& $0.2500000001$	& $314155$	\\	\hline
+					% $6$	& $0.250000000001$	& $3141623$	\\	\hline
+				\end{tabular}
+				\caption{Retrouver les décimales de $\pi$ avec l'ensemble de Mandelbrot}
+				\label{tb-2-piMandelbrot}
+			\end{table}
+
+			On retrouve étonnement les décimales de $\pi$ dans $N(z_i)$ quand $i$ augmente. En comparaison, on a : $\pi = 3.1415927$.
+			Ainsi il s'agit d'une méthode originale pour retrouver les décimales de $\pi$ mais extrêmement lente.
+
+	\subsection{Ensembles de Julia}
+
+		Soit $c\in\C$ fixé, les complexes de la suite $\suite{z}$ appartiennent à l'ensemble de Julia $\mathbb{J}_c$ s'il sont bornés par 2 de la même manière que pour l'ensemble de Mandelbrot.
+		\begin{equation}
+			\label{eq-2-julia}
+			\begin{cases}
+				z_{n+1} = z_n^2 + c			\\
+				z_0 \in \C
+			\end{cases}
+		\end{equation}	
+
+		On a l'implémentation sous Scilab suivante :
+		\begin{listing}[H]
+			\scicode{\tdB 2-Julia.sce}
+			\caption{Ensemble de Julia}
+			\label{code-2-julia}
+		\end{listing}		
+
+		On crée de la même manière que précédemment une grille de points complexes que l'on va itérer, sauf qu'ici chaque complexe correspond à $z_0$ et $c$ est fixé.
+		\code{Cv} est une matrice binaire : si $z$ est encore borné alors $\code{Cv(z)} = 1$.
+		\code{Color} est la matrice de coloration de la map pixel en fonction du nombre d'itérations effectuées avant que le complexe ne diverge : on augmente \code{Color(x,y)} tant que le complexe associé est borné.
+
+		On a choisi ici plusieurs valeurs de $c$ donnant les fractales suivantes :
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth]{\tdB\img 2-Julias.png}
+			\caption{Ensembles de Julia}
+			\label{img-2-julia}
+		\end{figure}
+
+		On observe que pour $c\in\mathbb{M}$ et que ces ensembles sont connexes.
+		Il s'avère que pour chaque $c\in\mathbb{M}$, l'ensemble de Julia $\mathbb{J}_c$ est connexe.
+
+
+	\subsection{Ensemble de Cantor}
+
+		% Cantor (1845-1918) est un mathématicien allemand fondateur de la théorie des ensembles.
+
+		% TODO Introduction avec les caractéristiques principales ?
+
+		\paragraph{Construction}
+			On construit l'ensemble de Cantor $E_n$ de profondeur $n$ de la manière suivante :
+
+			\begin{algorithm}[H]
+			\DontPrintSemicolon
+			\caption{Ensemble de Cantor}
+				\KwData{
+					Segment $E_0 =[0,1]$\;
+					\Indp\Indp$n$ la profondeur désirée\;
+				}
+				\KwResult{$E_n$ l'ensemble de Cantor de profondeur $n$}
+				\For{$i$ allant de $0$ à $n$}
+				{
+					Partager chaque segment en trois parties égales\;
+					Retirer la partie centrale de chaque segment\;
+				}
+			\end{algorithm}
+
+			Cet algorithme décrit un ISF déterministe avec les transformations suivantes :
+			\begin{align*}
+				% \label{eq-2-isfCantor}
+				T_1(x) = \frac{1}{3}x				\\
+				T_2(x) = \frac{1}{3}x + \frac{2}{3}	\\
+				E_{k+1} = T_1(E_k) \cup T_2(E_k)
+			\end{align*}
+
+			D'après le théorème \eqref{th-2-convergenceISF}, cet ISF converge bien vers l'ensemble triadique de Cantor $E_\infty$ \tq:
+			\begin{equation}
+				\label{eq-2-cantor}
+				E_\infty = \bigcap_{i=0}^{\infty} E_i
+			\end{equation}
+			où $E_i$ l'ensemble obtenu à l'étape $i$.
+
+			On implémente l'ISF déterministe sous Scilab :
+			\begin{listing}[H]
+				\scicode{\tdB 3-Cantor.sce}
+				\caption{Ensemble de Cantor}
+				\label{code-2-cantor}
+			\end{listing}
+
+			Le déterministe se fait par récursivité. On obtient le résultat suivant :
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=.8\linewidth]{\tdB\img 3-Cantor.eps}
+				\caption{Ensemble de Cantor de profondeur $n=7$}
+				\label{img-2-cantor}
+			\end{figure}
+
+			% Nous allons voir les diverses propriétés de cet ensemble particulier dans la partie suivante.
+
+		\paragraph{Propriétés}
+
+			L'ensemble de Cantor est auto-similaire dans le sens où le local et le global se ressemblent, c'est-à-dire qu'à différentes échelles la figure paraît la même. 
+			Sa structure est telle qu'elle ne peut être décrite par la géométrie traditionnelle mais seulement par la représentation triadique suivante.
+
+			\begin{theoreme}
+				On a la décomposition en base 3 suivante $\forall x \in E_\infty$ :
+				\begin{align}
+					\label{eq-2-cantorDecomposition}				
+					\underline{x}_{10}	&= \sum_{k=1}^\infty \frac{x_i}{3^i}	\\
+				\iff\underline{x}_{3} 	&= 0,x_1x_2x_3\ldots x_k\ldots
+				\end{align}
+				Avec $x_k = 0$ ou $2$, $\forall k$
+			\end{theoreme}
+			\begin{ex}
+				On a la décomposition suivante :
+				\begin{align*}
+					\left(\frac{1}{3}\right)_3 	& = 0,02222222\ldots	\\
+												& = 0 + \frac{0}{3} + \frac{2}{3^2} + \ldots + \frac{2}{3^k}	\\
+												& = \frac{2}{3^2} \left(1 + \frac{2}{3} + \ldots +\frac{2}{3^{k-2}}\right)	\\
+												& = \frac{2}{9} \times \frac{1}{1-\frac{1}{3}} = \frac{1}{3} = 0.1
+				\end{align*}
+				Donc $\frac{1}{3} \in E_\infty $
+				% $$ (0,1)_{10} = (0.0999\ldots)_{10} $$
+			\end{ex}
+
+			\begin{propShort}
+				$\abs{E_\infty} = 0$
+			\end{propShort}
+			\begin{preuve}
+				On a : $\abs{E_0} = 1$, $\abs{E_1} = \frac{2}{3}$, $\abs{E_2} = \frac{4}{9} = \left(\frac{2}{3}\right)^2$, etc.
+				Par récurrence on obtient : $ \abs{E_k} = \left( \frac{2}{3}\right)^k $.
+				Donc $\abs{E_k} \limto{k}{\infty} 0$.
+			\end{preuve}
+					
+
+			\begin{propShort}
+				$E_\infty$ est indénombrable.
+			\end{propShort}
+			\begin{preuve}
+				Montrons que l'ensemble $E_\infty$ est en bijection avec $[0;1]$ qui est indénombrable.
+				$$
+					\forall x \in E_\infty \text{ : } \eqref{eq-2-cantorDecomposition} \to \frac{x}{2} = 0,\frac{x_1}{2}\frac{x_2}{2}\ldots\frac{x_k}{2}\ldots \text{ avec } \frac{x_k}{2}\in [0;1]
+				$$
+				On associe à $\frac{x}{2}$ le nombre en base 2 : $0,y_1y_2y_3\ldots y_k\ldots$ avec $y_k \in [0;1]$
+			\end{preuve}
+
+		\paragraph{Dimension}
+
+			La dimension de $E_\infty$ est :
+			$$
+				\left.\begin{aligned}
+					r &= \frac{1}{3}	\quad	\\
+					N &= 2	\quad
+					\end{aligned}
+				\right\}
+				\qquad \text{à l'étape $k$ : } \quad 2^k=(3^k)^d \implies 2=3^d \implies d= \frac{\ln{2}}{\ln{3}} \in ]0;1[
+			$$
+
+
+	\subsection{Flocon de Von Koch}
+
+		% Le flocon de Von Koch correspond à la même procédure que 
+		% Algorithme :
+		% Figure de départ : un triangle
+		% Opération : chaque segment est partagé en trois segments de même longueur.
+		% Le segment central est alors remplacé par deux segments égaux formant un triangle équilatéral ayant pour base le segment retiré.
+
+
+		\paragraph{Construction}
+
+			On construit le flocon de la manière suivante :
+
+			\begin{algorithm}[H]
+			\DontPrintSemicolon
+			\caption{Flocon de Von Koch}
+				\KwData{
+					Triangle équilatéral $C_0$ de coté $1$\;
+					$n$ la profondeur désirée\;
+				}
+				\KwResult{$C_n$ le flocon de Von Koch de profondeur $n$}
+				\For{$i$ allant de $1$ à $n$}
+				{
+					Partager chaque segment en 3 segments égaux\;
+					Remplacer le segment central par deux segments égaux formant un triangle équilatéral ayant pour base le segment remplacé\;
+				}
+			\end{algorithm}
+
+% 			Il faut effectuer un homothétie de rapport $r=\frac{1}{3}$, deux rotations de $60$° puis $120$° et deux translations pour former le triangle équilatéral. En partant de , on peut retrouver les matrice $A_1$ et $A_2$.
+% % \eqref{eq-2-rotHomo}
+% 			Pour le premier segment, on a la tranformation $T_1(M) = A_1M + t_1$ avec :
+% 			\begin{equation}
+% 				\label{eq-2-tFlocon1}
+% 				\begin{array}{lc}
+% 					\begin{cases}
+% 						\rho = \frac{1}{3}
+% 						\\
+% 						\theta_1 = \frac{\pi}{3}
+% 					\end{cases}
+% 					&
+% 					\implies\begin{cases}
+% 						a_1 = \rho \times \cos\theta_1 = \frac{1}{3} \times \frac{1}{2} = \frac{1}{6}
+% 						\\
+% 						b_1 = \rho \times \sin\theta_1 = \frac{1}{3} \times \frac{\sqrt{3}}{2} = \frac{1}{2\sqrt{3}}
+% 					\end{cases}
+% 					\\
+% 					\\
+% 					A_1 = \begin{pmatrix}
+% 						\frac{1}{6}				& -\frac{1}{2\sqrt{3}} \\
+% 						\frac{1}{2\sqrt{3}}		& \frac{1}{6}
+% 					\end{pmatrix}
+% 					&
+% 					t_1 = \begin{pmatrix} \frac{1}{3}	\\ 0	\end{pmatrix}
+% 				\end{array}
+% 			\end{equation}
+
+% 			Pour le second segment, $T_2(M) = A_2M + t_2$ :
+% 			% TODO redo the T_1-4
+% 			\begin{equation}
+% 				\label{eq-2-tFlocon2}
+% 				\begin{array}{lc}
+% 					\begin{cases}
+% 						\rho = \frac{1}{3}
+% 						\\
+% 						\theta_1 = \frac{2\pi}{3}
+% 					\end{cases}
+% 					&
+% 					\implies\begin{cases}
+% 						a_2 = \rho \times \cos\theta_2 = \frac{1}{3} \times -\frac{1}{2} = -\frac{1}{6}
+% 						\\
+% 						b_1 = \rho \times \sin\theta_2 = \frac{1}{3} \times \frac{\sqrt{3}}{2} = \frac{1}{2\sqrt{3}}
+% 					\end{cases}
+% 					\\
+% 					\\
+% 					A_2 = \begin{pmatrix}
+% 						-\frac{1}{6}			& -\frac{1}{2\sqrt{3}} \\
+% 						\frac{1}{2\sqrt{3}}		& -\frac{1}{6}
+% 					\end{pmatrix}
+% 					&
+% 					t_2 = \begin{pmatrix} \frac{2}{3}	\\ 0	\end{pmatrix}
+% 				\end{array}
+% 			\end{equation}
+
+			On obtient le résultat suivant : 
+
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=.4\linewidth]{\tdB\img vonKoch.png}
+				\caption{Flocon de Von Koch}
+				\label{img-2-vonKoch}
+			\end{figure}
+
+			La courbe de Von Koch correspond à un segment du flocon.
+			Elle est de longueur infinie mais contenant dans une surface d'aire finie $[0;1]\times[0;1]$.
+
+
+		\paragraph{Propriétés}
+	    
+			\begin{propShort}
+				Le flocon de Von Koch a un périmètre infinie.
+			\end{propShort}
+			\begin{preuve}
+			% Longueur de $C^\infty$ :
+			$$
+				l_0 = 1 \quad \mapsto l_1 = \frac{4}{3} \quad \mapsto \ldots \mapsto l_k = \left(\frac{4}{3}\right) \underset{k\to\infty}{\to} + \infty
+			$$
+			\end{preuve}
+
+
+	    	\begin{propShort}
+	    		Le flocon de Von Koch a une aire finie.
+	    	\end{propShort}
+	    	\begin{preuve}
+				% Aire de $C^\infty$ :
+				\begin{align*}
+					A_0 &\in \R	\\
+					A_1 &= A_0 + 3\times\frac{A_0}{9} = A_0 + \frac{A_0}{3} 	\\
+					A_2 &= A_1 + 12\times\frac{A_0}{9^2} = A_0 + \frac{A_0}{3} + \frac{2}{3^2}A_0	\\
+				\end{align*}
+				Par récurrence :
+				\begin{align*}
+				 A_k &= A_0 + \sum_{i=0}^{k}\frac{2^i}{3^{i+1}}A_0 = A_0 + \frac{A_0}{3} \times \frac{1-\left(\frac{2}{3}\right)^k}{\frac{1}{3}} = A_0 + A_0 \times \left(1-\left(\frac{2}{3}\right)^k\right) \\
+				 A_\infty &= \lim_{k\to\infty} A_k = 2A_0
+				\end{align*}
+	    	\end{preuve}
+
+			Le flocon de Von Koch définit donc une surface finie contenue dans une courbe de longueur infinie.
+
+	\subsection{Triangle de Sierpinski}
+		
+		\paragraph{Construction}
+			
+			On construit cette fractale de la manière suivante :
+
+			\begin{algorithm}[H]
+			\DontPrintSemicolon
+			\caption{Triangle de Sierpinski}
+				\KwData{
+					Triangle équilatéral $E_0$ de coté $1$\;
+					$n$ la profondeur désirée\;
+				}
+				\KwResult{$E_n$ le triangle de Sierpinski de profondeur $n$}
+				\For{chaque triangle jusqu'à la profondeur $n$}
+				{
+					Partager le triangle en 4 triangles égaux\;
+					Retirer le triangle central\;
+				}
+			\end{algorithm}
+
+			On a l'implémentation sous Scilab suivante :
+			\begin{listing}[H]
+				\scicode{\tdB 4-Triangle_Sierpinski.sce}
+				\caption{Triangle de Sierpinski}
+				\label{code-2-triangleSierpinskiRecursif}
+			\end{listing}
+
+			On obtient le résultat suivant :
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=.6\linewidth]{\tdB\img 4-Triangle_Sierpinski_7.eps}
+				% \includegraphics[width=.4\linewidth]{\tdB\img 4-Triangle_Sierpinski_9.png}
+				\caption{Triangle de Sierpinski de profondeur $n=7$}
+				\label{img-2-triangleSierpinksi}
+			\end{figure}
+
+			On peut aussi construire l'ISF suivant composé d'une homothétie de rapport $r=\frac{1}{2}$ et quelques translations :
+			\begin{align*}
+				% \label{eq-2-isfTriSierpinski}
+				T_1(x,y) &= \frac{1}{2} \binom{x}{y}							\\
+				T_2(x,y) &= \frac{1}{2} \binom{x}{y} + \binom{\frac{1}{2}}{0}	\\
+				T_3(x,y) &= \frac{1}{2} \binom{x}{y} + \binom{\frac{1}{4}}{\frac{\sqrt{3}}{4}}
+			\end{align*}
+
+			On implémente cet ISF de type aléatoire sous Scilab :
+			\begin{listing}[H]
+				\scicode{\tdB 4.2-Triangle_Sierpinski_Iteratif.sce}
+				\caption{Triangle de Sierpinski Itératif}
+				\label{code-2-triangleSierpinskiIteratif}
+			\end{listing}
+
+			Le choix des transformations est équiprobable et la construction du triangle est itérative.
+			Le résultat est le suivant :
+			\begin{figure}[H]
+				\centering
+				\includegraphics[width=.6\linewidth]{\tdB\img 4-Triangle_Sierpinski_Ite.png}
+				\caption{Triangle de Sierpinski itératif avec $n=100000$ points}
+				\label{img-2-triangleSierpinksiIte}
+			\end{figure}
+
+			On observe une légère différence de rendu entre les deux figures \ref{img-2-triangleSierpinksi} et \ref{img-2-triangleSierpinksiIte} mais les deux décrivent bien la même fractale.
+
+		\paragraph{Propriétés}
+			On note $E_\infty$ le triangle de Sierpinski.
+
+			\begin{propShort}
+				L'aire du triangle de Sierpinski est nulle.
+			\end{propShort}
+			\begin{preuve}
+				On suppose que $\Aire E_0 = 1$.
+				On a :
+				\begin{align*}
+					\Aire E_1 &= 1 - \frac{1}{4}		\\
+					\Aire E_2 &= 1 - \frac{1}{4} - 3\times\left(\frac{1}{4}\right)^2 \\
+				\end{align*}
+				Par récurrence, on a :
+				\begin{align*}
+					\Aire E_\infty
+						&= 1 - \sum_{k=0}^\infty 3^k \times \frac{1}{4^{k+1}} \\
+						&= 1 - \frac{1}{4} \sum_{k=0}^\infty \left(\frac{3}{4}\right)^k		\\
+						&= 1 - \frac{1}{4} \times \left( \frac{1- \left( \frac{3}{4} \right)^\infty}{1 - \frac{3}{4}} \right)	\\
+						&= 	0
+				\end{align*}
+			\end{preuve}
+
+			% TODO : Binaire
+
+		\paragraph{Dimension}
+			% TODO : ajouter les images des triangles/carrés
+
+			La dimension $d$ du triangle de Sierpinski $E^\infty$ est :
+			$$
+				\left.\begin{aligned}
+					r &= \frac{1}{2}	\quad	\\
+					N &= 3	\quad
+					\end{aligned}
+				\right\}
+				\qquad 2=3^d \implies d= \frac{\ln{3}}{\ln{2}}
+			$$
+
+
+	\subsection{Tapis de Sierpinski}
+
+		\paragraph{Construction}
+		
+			Le tapis ou napperon de Sierpinski part du même principe que le triangle mais avec un carré. On a alors un rapport de $r=1/3$ et 9 sous-carrés dont 1 seul enlevés à chaque itérations.
+
+			\begin{algorithm}[H]
+			\DontPrintSemicolon
+			\caption{Tapis de Sierpinski}
+				\KwData{
+					Carré $E_0$ de coté $1$\;
+					$n$ la profondeur désirée\;
+				}
+				\KwResult{$E_n$ le tapis de Sierpinski de profondeur $n$}
+				\For{chaque carré jusqu'à la profondeur $n$}
+				{
+					Partager le triangle en 9 carrés égaux\;
+					Retirer le carré central\;
+				}
+			\end{algorithm}
+
+			On a l'ISF suivant décrivant une homothétie de rapport $r=\frac{1}{3}$ et quelques translations :
+			\begin{equation}
+				\begin{array}{lll}
+					\label{eq-2-isfTapisSierpinski}
+					\text{Translations :}
+					& d = \begin{pmatrix} \frac{1}{3}	\\ 0				\end{pmatrix}
+					& h = \begin{pmatrix} 0				\\ \frac{1}{3}		\end{pmatrix}
+					\\
+					\\
+					\text{Transformations :}
+					& T_3(M) = rM + 2d
+					& T_6(M) = rM + d + 2h
+					\\
+					T_1(M) = rM
+					& T_4(M) = rM + 2d + h
+					& T_7(M) = rM + 2h
+					\\
+					T_2(M) = rM + d
+					& T_5(M) = rM + 2d + 2h
+					& T_8(M) = rM + h
+				\end{array}	
+			\end{equation}
+
+			On peut donc implémenter cet ISF de manière déterministe et aléatoire avec Scilab :
+
+			\begin{listing}[H]
+				\scicode{\tdB 5-Tapis_Sierpinski.sce}
+				\caption{Tapis de Sierpinski}
+				\label{code-2-tapisSierpinskiRecursif}
+			\end{listing}
+			\begin{listing}[H]
+				\scicode{\tdB 5-Tapis_Sierpinski_Iteratif.sce}
+				\caption{Tapis de Sierpinski itératif}
+				\label{code-2-tapisSierpinskiIteratif}
+			\end{listing}
+
+			On obtient les résultats suivants :
+			\begin{figure}[H]		
+				\centering
+				\begin{subfigure}{.45\textwidth}
+					\centering
+					\includegraphics[width=.95\linewidth, trim=1cm 1cm 1cm 1cm, clip]{\tdB\img 5-Tapis_Sierpinski_5.eps}
+					\caption{Version récursive de profondeur $n=5$}
+					\label{img-2-tapisSierpinskiRecursif}
+				\end{subfigure}
+				\begin{subfigure}{.45\textwidth}
+					\centering
+					\includegraphics[width=\linewidth, trim=1.05cm 1.05cm 1.05cm 1.05cm, clip]{\tdB\img 5-Tapis_Sierpinski_Ite.png}
+					\caption{Version itérative avec $n=100000$ points}
+					\label{img-2-tapisSierpinskiIteratif}
+				\end{subfigure}
+				\caption{Tapis de Sierpinski}
+				\label{img-2-tapisSierpinski}
+			\end{figure}
+
+
+		\paragraph{Dimension}
+			La dimension $d$ du tapis de Sierpinski est :
+			$$
+				\left.\begin{aligned}
+					r &= \frac{1}{3}	\quad	\\
+					N &= 8	\quad
+					\end{aligned}
+				\right\}
+				\qquad 2=3^d \implies d= \frac{\ln{8}}{\ln{3}}
+			$$
+
+			% TODO : Surface nulle
+
+	% \subsection{Pyramide de Sierpinski}
+	% \subsection{Dragon de Levy}
+
+
+	\subsection{Éponge de Menger}
+
+		L'éponge de Menger correspond à l'application du tapis de Sierpinski en 3D. On a cette fois 20 sous-cubes 3 fois plus petits que le précédent.
+
+		% Le rapport à l'itération $k$
+
+		J'ai d'abord crée la fonction \code{plotCube} qui dessine un cube de coté \code{r} et d'origine \code{origin}.
+		\begin{listing}[H]
+			\scicode{\tdB Plot_Cube.sce}
+			\caption{Fonction pour dessiner un cube}
+			\label{code-2-plotCube}
+		\end{listing}
+	
+
+
+		Ensuite j'ai fait le programme suivant :
+		\begin{listing}[H]
+			\scicode{\tdB 6.1-Eponge_Menger_Light.sce}
+			\caption{Éponge de Menger}
+			\label{code-2-epongeMenger}
+		\end{listing}
+
+		Le code \ref{code-2-epongeMenger} ne peut que très légèrement être modifié. Si on veut améliorer ses performances, il faut donc améliorer la fonction \code{plotCube}.
+		Cependant le code \ref{code-2-plotCube} n'est pas très optimisé, il doit y avoir d'autres façons plus efficaces pour dessiner un cube simplement. Pour une profondeur de $n=2$ le programme s'arrête en moins d'une minute mais pour $n=3$ la mémoire est très vite saturée.
+
+		Néanmoins j'ai pu obtenir le résultat suivant :
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.6\linewidth, trim=2.5cm 2.5cm 2.5cm 2.5cm, clip]{\tdB\img 6-Eponge_Menger.png}
+			\caption{Éponge de Menger de profondeur $n=2$}
+			\label{img-2-epongeMenger}
+		\end{figure}
+
+
+	\subsection{Fougère de Barnsley}
+
+		La fougère de Barnsley est l'une des premières fractales créées itérativement avec un ISF aléatoire.
+		On a le programme Scilab suivant :
+		\begin{listing}[H]
+			\scicode{\tdB 7-Fougere.sce}
+			\caption{Fougère de Barnsley}
+			\label{code-2-fougere}
+		\end{listing}
+
+		Ici les 4 transformations ne sont pas équiprobables.
+		On obtient :
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=.4\linewidth, trim=3cm 3cm 3cm 3cm, clip]{\tdB\img 7-Fougere.png}
+			\caption{Fougère de Barnsley avec $n=100000$ points}
+			\label{img-2-fougere}
+		\end{figure}	
+
+	% \subsection{Arbre binaire symétrique}
+
+
+
+% \section{Applications des fractales}
+
+% 	Structure des poumons
+% 	Structures des plantes
+% 	Branches d'arbre
+% 	Finance : prévision de krachs boursiers avec la théorie multifractale
+% 	Murs antibruits
+
+% 	\subsection{Dans le corps humain}
+% 	\subsection{Dans la nature}
+% 	\subsection{Dans l'imagerie de synthès}
+% 	\subsection{Dans la technologie}
+
+
+%
+
+% TODO IDEAS :
+% Attracteur
+% Image de synthèse
+% Exemples imagés
+% ISF et Algo pour les 

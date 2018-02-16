@@ -1,0 +1,494 @@
+\chapter{Problèmes non-linéaires}
+\label{ch-1}
+
+% \section{Introduction}
+
+	Dans ce chapitre, l'objectif est de résoudre des équations, d'annuler des fonctions, d'abord dans $\R$, puis dans $\R^n$, c'est-à-dire trouver $x^*$ tel que $f(x^*)=0$.
+	De nombreux problèmes peuvent être modélisés par des équations (cas de $f$ à valeurs dans $\R$) voire par des systèmes dynamiques (cas de $f$ à valeurs dans $\R^n$). En réalité, ces modèles sont bien souvent non-linéaires et les résoudre de manière analytique est donc impossible. On a donc recours à des méthodes numériques qui, par l'utilisation d'algorithmes spécifiques, permettent d'obtenir une solution approchée correcte.
+	
+	Dans cette partie nous traitons les problèmes de résolution. Nous verrons les problèmes d'optimisation dans la seconde partie des problèmes non-linéaires.
+
+\section{Méthodes numériques de résolution dans \texorpdfstring{$\R$}{R}}
+
+	\subsection{Ordre de convergence théorique}
+
+		L'ordre de convergence d'une méthode de résolution numérique correspond à la vitesse à laquelle elle converge vers la solution $x^*$.
+
+		\begin{definition}
+			\label{def-1-convergence}
+			Une méthode est d'ordre de convergence $\alpha$ si et seulement si $\exists \alpha \tq$ :
+			\begin{equation}
+				\label{eq-1-convergence}
+				\frac{\abs{x_{k+1} - x^*}}{\abs{x_k - x^*}^\alpha} = C \qquad \text{avec } C \in \R
+			\end{equation}
+		\end{definition}
+
+		Nous utiliserons cette définition pour trouver l'ordre des méthodes présentées dans ce chapitre, cependant nous voudrons représenter graphiquement ces ordres. On a donc :
+		\begin{align*}
+			\eqref{eq-1-convergence}
+			\implies & \abs{x_{k+1} - x^*} = C \times \abs{x_k - x^*}^\alpha				\\
+			\implies & \ln \abs{x_{k+1} - x^*} = \ln C + \alpha \times \ln \abs{x_k - x^*}	\\
+			\implies & \ln \abs{x_{k+1} - x^*} = F(\abs{x_k - x^*})
+		\end{align*}
+
+		On peut donc représenter la convergence d'une méthode par une droite $F$ définie comme :
+		\begin{equation}
+			\label{eq-1-convLin}
+			F(X) = \ln C + \alpha X \qquad \text{avec l'écart } X = \abs{x_k - x^*}
+		\end{equation}
+
+		Ainsi une méthode sera plus rapide et donc plus efficace qu'une autre si son coefficient $\alpha$ est supérieur; et secondairement on peut comparer les constantes $C$.
+
+
+
+	\subsection{Méthode de la dichotomie}
+		
+		\subsubsection{Idée}
+			La dichotomie, aussi appelée bissection, provient du grec \textit{dikhotomia} qui représente une division en deux parties. Cette méthode consiste à se rapprocher de la solution par divisions successives par deux de l'intervalle de départ contenant la solution.
+
+			On choisit d'abord d'un intervalle $[a,b]$ contenant la solution $x^*$. 
+			Le choix de l'intervalle de départ est important car si la solution n'y est pas comprise, l'algorithme ne converge pas et s'il est trop grand, la convergence sera plus longue.
+			% TODO : choix intervalle de départ
+			
+			Pour tout entier $n$, on définit deux suites $\suite{a}$ et $\suite{b}$ correspondant aux bornes de l'intervalle à l'itération $n$ avec $a_0 = a$ et $b_0 = b$; ainsi que la suite $(x_n)$ telle que :
+			$$ x_n = \frac{a_n + b_n}{2} $$
+			
+			A chaque itération, on compare le signe de $f(a_n)$ à celui de $f(x_n)$ et on réduit l'intervalle de moitié en affectant $x_n$ à $a_{n+1}$ ou $b_{n+1}$, ainsi $[a_{n+1}, b_{n+1}]$ se resserre sur $x^*$ et $x_{n+1}$ se rapproche de la solution.
+
+			Pour que cette méthode soit applicable, il suffit que $f$ soit continue pour pouvoir trouver des valeurs intermédiaires comme cela est garanti par le théorème des valeurs intermédiaires.
+
+
+		\subsubsection{Convergence}
+			Par construction, on divise l'intervalle par deux à chaque itération donc on a :
+			$$	(b_n - a_n) =  \left(\frac{1}{2}\right)^n (b_0 - a_0)	$$
+
+			% Ainsi l'écart entre la solution approchée et la solution théorique est :
+			$$	\lvert x_n-x^* \rvert \leq \frac{1}{2} (b_n-a_n) = (\frac{1}{2})^{n+1} (b_0-a_0) \limto{n}{\infty} 0	$$
+			On remarque bien que l'erreur est réduite de manière quasi-linéaire.
+			% TODO Quasi linéaire ? + Preuve
+		
+
+	\subsection{Méthode du point fixe}
+
+		\subsubsection{Idée}
+			On cherche $g : \R\to\R$ telle que $f(x)=0\iff g(x)=x$.
+			Ainsi on ramène le problème d'annulation de la fonction $f$ a la recherche d'une point fixe pour la fonction $g$.
+			\begin{exShort}
+				$f(x)=x^2-2$
+				$$
+					x^2-2 = 0 \iff 
+					g(x)=x \iff 
+					g(x)=\frac{x+2}{x+1}
+				$$
+			\end{exShort}
+			% TODO :Comment trouver g	????????
+
+			De plus, il faut que $g$ soit dérivable et que sa dérivée au point fixe ne dépasse pas $1$ en norme.
+			Alors la convergence de cette méthode est garantie par le théorème suivant :
+
+			\begin{theoreme}
+				\label{th-1-gConv}
+				Soit $g : \R\to\R$ dérivable et admettant un point fixe $x^*$ telle que $\lvert g'(x^*) \rvert < 1 $ alors $\exists [a;b]$ tel que $x^* \in [a;b]$ et la suite $(x_n)_{n\geq\N}$ définie comme suit, converge vers $x^*$
+				$$
+					\begin{cases}
+						x_{n+1}=g(x_n) \\
+						x_0 \in [a;b]
+					\end{cases}
+				$$
+			\end{theoreme}
+
+			%\begin{preuve}
+				% TODO : Avec th des accroissement fini ??
+			%\end{preuve}
+
+			En revanche il y a un problème : pour que cette méthode convergence assez rapidement $x_0$ doit être proche de $x^*$, il faut donc bien le choisir.
+			% TODO : Choix ????????!!!!!!!!!!!
+
+
+		\subsubsection{Convergence}
+			Si $\lvert g'(x^*) \rvert < 1$ alors
+			$$ \frac{\lvert x_{n+1} - x^* \rvert}{\lvert x_n - x^* \rvert} < \lvert g'(x^*) \rvert $$
+			Et donc :
+			$$ \lvert x_{n+1} - x^* \rvert < \lvert g'(x^*) \rvert \lvert x_n - x^* \rvert $$
+			Ainsi la méthode du point fixe est d'ordre 1. Par récurrence :
+			$$ \lvert x_{n+1} - x^* \rvert < \lvert g'(x^*) \rvert^n \lvert x_0 - x^* \rvert \limto{n}{\infty} 0$$
+			Elle converge bien vers $x^*$ car $\lvert g'(x^*) \rvert < 1$.
+			De plus la convergence de cette méthode est d'ordre 1.
+
+	\subsection{Méthode de Newton}
+	
+		\subsubsection{Idée}
+			Cette méthode est plus puissante mais il faut que $f$ soit deux fois continûment dérivable ($\ie f \in \Cont^2$).
+			Le but est d'approcher la solution grâce à la tangente de la courbe.
+			On fait un développement de Taylor-Young de $f$ en $x$.
+			Soit $x_0 \in \R$ :
+			$$
+				f(x) = \underbrace{f(x_0) + f'(x_0)(x-x_0)}_{T_{x_0}} + \frac{(x-x_0)^2}{2}f''(x_0 +\theta(x-x_0))
+			$$
+			\\
+			On cherche à rapprocher $x_0$ de $x$ dont l'image est la solution désirée, cette aproximation est réalisée quand la différence entre $f(x)$ et $f(x_0)$ est négligeable, c'est-à-dire quand la tangente $T_{x_0}$ s'annule.
+			On définit $x_1$ tel que $T_{x_0}(x_1)=0$ donc si $f'(x_0) \neq 0 $ on a :
+			$$
+				x_1 = x_0 - \frac{f(x_0)}{f'(x_0)}
+			$$
+			Par récurrence on a alors :
+			\begin{equation}
+				\label{eq-1-newton}
+				x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}
+			\end{equation}
+
+			L'algorithme de la méthode est alors le suivant :
+
+			\begin{algorithm}[H]
+				\caption{Méthode de Newton}
+				\KwData{$x_0 \in \R$ donné}
+				\KwResult{$x^* \in \R$ la solution approchée à $\epsilon$ près}
+				\While{$\abs{f(x_n)} > \epsilon$ and $f'(x_n)\neq0$}
+				{
+					$x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}$\;
+				}
+			\end{algorithm}
+
+			Nous avons :
+			$$
+				\eqref{eq-1-newton} \iff x_{n+1} = g(x_n) \text{ avec } g(x) = x- \frac{f(x)}{f'(x)}
+			$$
+			\begin{align*}
+				g'(x) 				&= 1 - \frac{\left(f'(x)\right)^2 - f(x)f''(x)}{\left(f'(x)\right)^2}	\\
+				\implies g'(x^*) 	&= 1 - \frac{\left(f'(x^*)\right)^2}{\left(f'(x^*)\right)^2} = 0
+			\end{align*}
+			$\abs{g'(x^*)} <1$ donc d'après le théorème \eqref{th-1-gConv} la méthode converge bien.
+
+		\subsubsection{Convergence}
+			On suppose $f\in \Cont^3$. On a :
+			$$
+				x_{n+1} - x^* = g(x_n) - g(^*)
+			$$
+			On effectue un développement de Taylor-Young : 
+			$$
+				g(x_n) = g(x^*) +(x_n - x^*)g'(x^*) + \frac{(x_n - x^*)}{2} g''(\xi)
+			$$
+			Avec $\xi$ compris entre $x_n$ et $x^*$.
+			$$
+				\abs{x_{n+1} - x^*} \leq C\abs{x_n - x^*}^2
+			$$
+			Avec $C = \frac{1}{2} \max g''(\xi)$.
+			La méthode de Newton est donc d'ordre quadratique, ce qui la rend donc plus efficace.
+			Concrètement cela signifie que le nombre de décimales significatives double à chaque itération.
+
+
+	\subsection{Méthode de la sécante}
+
+		\subsubsection{Idée}
+
+			Cette méthode ressemble à celle de Newton car elle la reprend en approchant $f'(x)$ par le taux de variation. Ici la seule hypothèse est que
+
+			\begin{algorithm}[H]
+			\caption{Méthode de la sécante}
+				\KwData{$x_0$ et $x_1 \in \R$ donnés}
+				\KwResult{$x^* \in \R$ la solution approchée à $\epsilon$ près}
+				\While{($\abs{f(x_n)}>\epsilon$)}
+				{
+					$x_{n+1} = x_n - \frac{f(x_n)}{f(x_n) - f(x_{n-1})}(x_n - x_{n-1})$\;
+				}
+			\end{algorithm}
+
+
+		\subsubsection{Convergence}
+			La convergence de cette méthode est d'ordre le nombre d'or $\phi =\frac{1+\sqrt{5}}{2}$.
+
+
+	\subsection{Comparaison des méthodes}
+
+		On compare expérimentalement les méthodes en cherchant à annuler $f(x) = x^2 - 2$. La solution recherchée ici est seulement $\sqrt{2}$. En effet, les différentes méthodes ont leurs paramètres centrés sur la solution poisitive, ils convergeront donc vers celle-ci.
+
+		On a les codes Scilab suivants pour les différentes méthodes :
+
+		\begin{listing}[H]
+		\label{code-1-dichotomie}
+			\scicode{\tdA 1.1-Dichotomie.sce}
+			\caption{Méthode de la dichotomie}
+		\end{listing}
+
+		\begin{listing}[H]
+		\label{code-1-pointFixe}
+			\scicode{\tdA 1.2-Point_Fixe.sce}
+			\caption{Méthode du Point Fixe}
+		\end{listing}
+
+		\begin{listing}[H]
+		\label{code-1-newton}
+			\scicode{\tdA 1.3-Newton.sce}
+			\caption{Méthode de Newton dans $\R$}
+		\end{listing}
+
+		\begin{listing}[H]
+		\label{code-1-secante}
+			\scicode{\tdA 1.4-Secante.sce}
+			\caption{Méthode de la sécante}
+		\end{listing}
+
+		Les méthodes sont définies comme des fonctions dont les paramères communs à toutes les méthodes sont :
+		\begin{itemize}
+			\item \code{f} la fonction à annuler
+			\item \code{df} (dérivée de $f$) ou \code{g} voire rien selon la méthode
+			\item \code{x0} ou \code{a} et \code{b} les conditions de départ spécifique à la méthode
+			\item \code{ITE_MAX} le nombre maximal d'itérations autorisées avant d'arrêter la méthode
+			\item \code{EPS} la tolérance pour considérer que la fonction a été annulée
+		\end{itemize}
+
+		En retour, on obtient :
+		\begin{itemize}
+			\item\code{x} le vecteur colonne des solutions avec $x_k$ l'approximation à l'itération $k$
+			\item\code{i} l'itération a laquelle l'approximation est comprise dans le seuil de tolérance
+		\end{itemize}
+
+		Enfin on compare ces méthodes :
+		\begin{listing}[H]
+		\label{code-1-comparaison}
+			\scicode{\tdA 1.0-Toutes_Methodes.sce}
+			\caption{Comparaison des méthodes}
+		\end{listing}
+
+		La démarche est la suivante :
+		on récupère les résulats des méthodes, on calcule l'écart par rapport à la solution analytique $\code{solution} = \sqrt{2}$, puis les ordres de convergence $\alpha$ par régression linéaire sur le logarithme de l'écart absolu avec \code{reglin}. On affiche ensuite l'évolution des approximations et des écarts en fonction des itérations \ref{img-1-result2} et l'ordre des méthodes \ref{img-1-ordre}.
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=\linewidth, trim=3cm 2cm 3cm 2cm, clip]{\tdA\img 1-Toutes_Methodes_Approximation.eps}
+			\caption{Résultats pour $f(x) = x^2 -2$}
+			\label{img-1-result2}
+		\end{figure}
+		Graphiquement on voit que les méthodes convergent assez vite vers la solution.
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=0.6\linewidth, trim=2cm 1cm 2cm 1cm, clip]{\tdA\img 1-Toutes_Methodes_Ordre.eps}
+			\caption{Représentation graphique des ordres de convergence des méthodes}
+			\label{img-1-ordre}
+		\end{figure}
+
+		On retrouve bien les même ordres de convergence pour chaque méthode.
+		Ainsi il est préférable d'utiliser la méthode de Newton. L'outil \code{fsolve(x0, f, Jf)} du Scilab est pratique aussi. Il s'inspire d'une méthode complexe et peu documentée, la méthode hybride de Powell. Il suffit de renseigner $x_0 \in \R^n$ et $f$, la matrice Jacobienne $J_f$ est optionnelle mais permet d'éviter à l'outil de devoir l'approcher et donc d'être plus rapide. Nous comparerons la méthode de Newton à \code{fsolve} dans l'application \eqref{code-1-GPS}.
+
+\section{Méthodes numériques dans \texorpdfstring{$\R^n$}{Rn}}
+
+	\subsection{Rappels}
+	% TODO : mettre dans maths ?
+		\begin{definition}[Différentiabilité]
+			Soit $f: \R^n \to \R^n$ et $x_o \in \R^n$.
+			\\$f$ est différentiable en $x_0$ si $\exists J_f \in \M_{n,n} \tq \forall h \in \R^n$ :
+			$$
+				f(x_0 +h) = f(x_0) + J_f h + \norm{h} \epsilon(h)
+			$$
+			où $lim_{h \to 0} \epsilon(h) = 0$ et la norme utilisée est la norme euclidienne.
+			La matrice Jacobienne de $f$ en $x_0$ est $J_f(x_0)$ telle que : $(J)_{ij} = \dfdp{f_i}{x_j}(x_0)$.
+		\end{definition}
+
+	\subsection{Méthode de Newton dans \texorpdfstring{$\R^n$}{Rn}}
+
+		Une version de la méthode de Newton existe aussi pour le cas plus général d'un système dynamique dans $\R^n$. On remplace alors la dérivée de $f$ par sa matrice Jacobienne. Il faut donc que $f$ soit différentiable.
+
+		Soit $x_0 \in \R^n$ choisi. $\forall x \in \R^n$ :
+		$$
+			f(x) = \underbrace{f(x_0) + f'(x_0)(x-x_0)}_{T_{x_0}} + \frac{(x-x_0)^2}{2}f''(x_0 +\theta(x-x_0))
+		$$
+		avec $T_{x_0}$ le plan tangent en $x$.
+		On définit $x_1$ \tq 
+		\begin{equation}
+			\label{eq-1-planTangent}
+			T_{x_0}(x_1) = 0
+		\end{equation}
+		ce qui forme un système d'équations linéaires.
+		\begin{align*}
+			\eqref{eq-1-planTangent} \iff		& J_f(x_0)\times(x_1 -x_0) = -f(x_0)		\\
+									\implies 	& x_1 = x_0 - f(x_0) \times \left(J_f(x_0)\right)^{-1}
+		\end{align*}
+		En pratique, il est préférable de résoudre le système linéaire \eqref{eq-1-planTangent} avec la méthode de Gauss, que d'inverser la jacobienne pour calculer $x_1$.
+
+		\begin{algorithm}[H]
+		\caption{Méthode Newton dans $\R^n$}
+			\KwData{$x_0 \in \R^n$ donné}
+			\KwResult{$x^* \in \R^n$ la solution approchée à $\epsilon$ près}
+			\While{($\norm{f(x_n)}>\epsilon$ et $J_f(x_n)$ inversible)}
+			{
+				$x_{n+1} = x_n - J_f(x_n) \backslash f(x_n)$\;
+			}
+		\end{algorithm}
+
+		On a l'implémentation dans Scilab suivante :
+		\begin{listing}[H]
+			\scicode{\tdA 1.5-NewtonRn.sce}
+			\caption{Méthode de Newton dans $\R^n$}
+			\label{code-1-newtonRn}
+		\end{listing}
+
+		Les paramères sont :
+		\begin{itemize}
+			\item \code{f} la fonction à annuler
+			\item \code{Jf} la Jacobienne de $f$
+			\item \code{x0} $\in\M_{n1}$ les conditions initials
+			\item \code{ITE_MAX} le nombre maximal d'itérations autorisées avant d'arrêter la méthode
+			\item \code{EPS} la tolérance pour considérer que la fonction a été annulée
+		\end{itemize}
+		En retour on obtient \code{x} $\in \M_{ni}$ où $i$ est le nombre d'itérations effectuées. On obtient donc l'évolution de l'approximation à chaque colonne.
+
+
+\section{Applications}
+
+	\subsection{Cinématique inversée}
+		Savoir résoudre des problèmes non-linéaires est intéressant dans de nombreux domaines, dont celui de la robotique. On a par exemple les problèmes de cinématique inversée : le but est de retrouver la bonne configuration d'un bras robotique pour qu'il atteigne un point particulier sous certaines contraintes.
+		% Nous pouvons schématiser un tel problème par la figure suivante :
+
+		% TODO : Figure bras
+
+		On modélise ensuite la situation par le système suivant :
+		\begin{equation}
+		\label{eq-1-bras}
+			M(\theta)=A \iff
+			\begin{cases}
+				l_1\cos(\theta_1) + l_2\cos(\theta_1 + \theta_2) - x_A &= 0 \\
+				l_1\sin(\theta_1) + l_2\sin(\theta_1 + \theta_2) - y_A &= 0 				
+			\end{cases}
+		\end{equation}
+		
+		On pose $f : \R^2 \to \R^2 \tq$
+		\begin{equation}
+		\label{eq-1-fBras}
+			f(\theta) = 
+			\begin{pmatrix}
+				l_1\cos(\theta_1) + l_2\cos(\theta_1 + \theta_2) - x_A \\
+				l_1\sin(\theta_1) + l_2\sin(\theta_1 + \theta_2) - y_A			
+			\end{pmatrix}
+		\end{equation}
+
+		On a équivalence entre \eqref{eq-1-bras} et $f(\theta) = 0$.
+
+		On résout alors \eqref{eq-1-fBras} par une méthode numérique, ici celle de Newton.
+		Pour cela, nous devons calculer la Jacobienne de $f$ :
+		$$
+			J_f(\theta) = \begin{pmatrix}
+				-l_1\sin(\theta_1) - l_2\sin(\theta_1 + \theta_2)
+				&	-l_2\sin(\theta_1 + \theta_2)
+				\\
+				l_1\cos(\theta_1) + l_2\cos(\theta_1 + \theta_2)
+				&	l_2\cos(\theta_1 + \theta_2)
+			\end{pmatrix}
+		$$
+
+		Nous avons le programme Scilab suivant :
+
+		\begin{listing}[H]
+			\scicode{\tdA 2.3-Cinematique_Inversee.sce}
+			\caption{Cinématique inversée}
+			\label{code-1-cinematiqueInversee}
+		\end{listing}
+
+		On cherche aussi à décrire une trajectoire circulaire de centre $(1,1)$ et de rayon $0.5$.
+		Pour cela on calcules les \code{NB_POSITIONS} positions successives lorsque le bras atteint le point $M$, ce dernier variant autour du cercle à chaque itération.
+		La fonction \code{dessine_bras(X,1)} dessine le bras avec les angles $X_1$ et $X_2$ et le cercle si le second paramètre est égale à 1. 
+		On obtient les positions successives du bras articulé :
+
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=0.7\linewidth, trim=1cm 2.5cm 1cm 2.5cm,clip]{\tdA\img 2-Trajectoire_Cercle.eps}
+			\caption{Mouvement autour d'un cercle}
+			\label{img-1-brasCercle}
+		\end{figure}
+
+
+		
+		% TODO : finir
+
+
+
+
+		% Résolution en Cartésien
+		%	Les coordonnées $(x,y)$ du coude sont telles que :
+		%	\begin{equation}
+		%	\label{eq-1-coude}
+		%		\begin{cases}
+		%			x^2 + y^2 - l_1^2 = 0				& \quad \textit{Partie OA du coude}	\\
+		%			(x-x_A)^2 + (y-y_A)^2 - l_2^2 = 0	& \quad \textit{Partie AM du coude}
+		%		\end{cases}
+		%	\end{equation}
+		%	$$
+		%		% \eqref{eq-1-coude}
+		%		\iff g(x,y) = 
+		%		\begin{pmatrix}
+		%			x^2 + y^2 - l_1^2	\\
+		%			(x-x_A)^2 + (y-y_A)^2 - l_2^2
+		%		\end{pmatrix}
+		%		= \vec0
+		%	$$
+
+
+	\subsection{GPS}
+	\label{ch-1-gps}
+
+		Pour se localiser dans l'espace, un GPS (\textit{Global Positioning System} ou en français \textit{Géo-Positionnement par Satellite}) résoud un problème non-linéaire dans $\R^3$. Pour fonctionner, il doit être connecté à au moins 3 satellites afin de garantir une solution unique. En connaissant la distance\footnote{Le satellite envoie un signal contenant l'heure d'émission, le GPS peut alors calculer la distance à partir de l'heure de réception et de la vitesse de l'onde.} qui les séparent et leur position dans l'espace, on forme un système d'équations non-linéaires.
+		De plus des problèmes de synchronisation temporelle entre les satellites et le GPS peuvent s'ajouter pour calculer les erreurs.
+
+		On va ici résoudre ce problème dans le cas de 3 satellites sans tenir compte de problèmes temporels.
+		Soient $S_1, S_2, S_3\in\M_{31}$ tels que $S_i=(x_i,y_i,z_i)$ les positions des satellites dans l'espace, ainsi que $d\in\M_{31}$ où $d_i$ est la distance séparant le satellite $S_i$ au GPS.
+		On cherche $X = (x,y,z) \in\M_{31}$ tel que $f(X) = 0$ :
+		\begin{equation}
+			\label{eq-1-fGPS}
+			f(X) = \begin{pmatrix}
+				\norm{X - S_1}^2 - d_1	\\
+				\norm{X - S_2}^2 - d_2	\\
+				\norm{X - S_3}^2 - d_3
+			\end{pmatrix}
+		\end{equation}
+
+		On pose : $g_i(X) = \norm{X - S_i}^2$
+
+		Pour trouver la Jacobienne sans calculer chaque dérivée partielle on effectue le développement limité suivant :
+
+		\begin{align*}
+			g_i(X+h) 	&= \norm{(X-S) +h}^2								\\
+						&= \left((X-S)+h\right)^T\left((X-S)+h\right)		\\
+						&= (X-S)^T(X-S) + h^T(X-S) + (X-S)^T h + h^Th		\\
+						&= \underbrace{\norm{X-S}^2}_{g(X)} + \underbrace{2(X-S)^T}_{J_g(X)}h + \underbrace{\norm{h}^2}_{\text{Reste}}
+		\end{align*}
+
+		Ainsi on a la Jacobienne :
+		\begin{equation}
+			\label{eq-1-jGPS}
+			J_g(X) = 2\times\begin{pmatrix}
+								(X-S_1)^T \\
+								(X-S_2)^T \\
+								(X-S_3)^T
+							\end{pmatrix}
+		\end{equation}
+
+		On peut donc résoudre le problème avec Scilab.
+		\begin{listing}[H]
+			\scicode{\tdA 2.2-GPS.sce}
+			\caption{Simulation d'un GPS}
+			\label{code-1-GPS}
+		\end{listing}
+
+		Ici, j'ai fait diverses comparaisons :
+		\begin{itemize}
+			\item entre la méthode de Newton et l'outil \code{fsolve} de Scilab \ref{tb-1-resultGPS}
+			\item entre la matrice Jacobienne \eqref{eq-1-jGPS} et celle calculée par Scilab avec \code{numderivative}
+		\end{itemize}
+
+		J'ai alors obtenu les coordonnées et leur écart absolu :
+		\begin{table}[H]
+			\centering
+			\begin{tabular}{|r|r|r|}
+				\hline
+				Méthode de Newton	& Macro \code{fsolve}	& Écart absolu				\\	\hline
+				595.0250498015592	& 595.0250498015607		& 1.4779288903810084E-12	\\	\hline
+				-4856.025050498366	& -4856.025050498369	& 2.7284841053187847E-12	\\	\hline
+				4078.329999324317	& 4078.3299993243168	& 4.547473508864641E-13		\\	\hline
+			\end{tabular}
+			\caption{Résulats de la simulation du GPS}
+			\label{tb-1-resultGPS}
+		\end{table}
+
+		On obtient une altitude par rapport au rayon moyen de la Terre de $-1.7135655$ m. On est ainsi relativement proche de la surface du globe car les données possèdent des incertitudes de même ordre. 
+		% TODO : Finir, virer ou refaire le tableau
+
